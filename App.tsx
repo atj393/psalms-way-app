@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
-import {Text, TouchableOpacity} from 'react-native';
 import {
+  Text,
+  TouchableOpacity,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -10,111 +11,85 @@ import {
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ChapterScreen from './pages/ChapterScreen';
 import ChapterVerseScreen from './pages/ChapterVerseScreen';
-import ChapterSelectScreen from './pages/ChapterSelectScreen'; // Assume you have a pages folder
+import ChapterSelectScreen from './pages/ChapterSelectScreen';
 import {Divider} from 'react-native-elements';
 
-function App(): React.JSX.Element {
+function App() {
   const isDarkMode = useColorScheme() === 'dark';
-  const [showChapter, setShowChapter] = useState<boolean>(false);
-  const [currentChapter, setCurrentChapter] = useState<number>(1);
-  const [currentVerse, setCurrentVerse] = useState<number>(1);
-  const [showChapterSelect, setShowChapterSelect] = useState<boolean>(false);
+  const [showChapter, setShowChapter] = useState(false);
+  const [showChapterSelect, setShowChapterSelect] = useState(false);
+  const [currentChapter, setCurrentChapter] = useState(1);
+  const [currentVerse, setCurrentVerse] = useState(1);
 
-  // Assuming you have the total number of chapters and verses
-  const totalChapters = 150;
-  const totalVerses = 6; // This should be dynamic based on the chapter
+  const backgroundStyle = isDarkMode
+    ? darkStyles.background
+    : lightStyles.background;
+  const headerTitle = isDarkMode
+    ? darkStyles.headerTitle
+    : lightStyles.headerTitle;
+  const headerStyle = isDarkMode ? darkStyles.header : lightStyles.header;
+  const chapterTitleStyle = isDarkMode
+    ? darkStyles.chapterTitle
+    : lightStyles.chapterTitle;
+  const buttonStyle = isDarkMode ? darkStyles.button : lightStyles.button;
+  const buttonText = isDarkMode
+    ? darkStyles.buttonText
+    : lightStyles.buttonText;
 
-  const backgroundStyle = {
-    //  backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.white,
-  };
+  const toggleChapterSelect = () => setShowChapterSelect(!showChapterSelect);
 
-  const headerStyles = {
-    ...styles.header,
-    backgroundColor: isDarkMode ? Colors.darker : Colors.white,
-  };
-
-  const headerTitleStyles = {
-    ...styles.headerTitle,
-    color: isDarkMode ? Colors.white : Colors.black,
-  };
-
-  const selectChapter = (chapter: number) => {
+  const onSelectChapter = (chapter: React.SetStateAction<number>) => {
     setCurrentChapter(chapter);
     setShowChapter(true);
-    setShowChapterSelect(false);
+    toggleChapterSelect();
   };
 
-  const handleNewVerse = () => {
-    // Generate a random chapter and verse number
-    const randomChapter = Math.floor(Math.random() * totalChapters) + 1;
-    const randomVerse = Math.floor(Math.random() * totalVerses) + 1;
-
+  const onNewVerse = () => {
+    const randomChapter = Math.floor(Math.random() * 150) + 1;
+    const randomVerse = Math.floor(Math.random() * 6) + 1; // Assuming each chapter has 6 verses
     setCurrentChapter(randomChapter);
     setCurrentVerse(randomVerse);
     setShowChapter(false);
   };
 
-  const handleNewChapter = (chapter?: number) => {
-    const chapterToSet =
-      chapter ?? Math.floor(Math.random() * totalChapters) + 1;
-    setCurrentChapter(chapterToSet);
+  const onNewChapter = () => {
+    setCurrentChapter(Math.floor(Math.random() * 150) + 1);
     setShowChapter(true);
   };
 
-  const handlePreviousChapter = () => {
-    setCurrentChapter(prevChapter =>
-      prevChapter === 1 ? totalChapters : prevChapter - 1,
-    );
+  const onPreviousChapter = () => {
+    setCurrentChapter(prev => (prev === 1 ? 150 : prev - 1));
     setShowChapter(true);
   };
 
-  const handleNextChapter = () => {
-    setCurrentChapter(prevChapter =>
-      prevChapter === totalChapters ? 1 : prevChapter + 1,
-    );
+  const onNextChapter = () => {
+    setCurrentChapter(prev => (prev === 150 ? 1 : prev + 1));
     setShowChapter(true);
   };
 
   return (
     <SafeAreaView style={[styles.safeArea, backgroundStyle]}>
-      <View>
-        <View style={headerStyles}>
-          <Text style={headerTitleStyles}>Psalms Way!</Text>
-          {/*  <TouchableOpacity
-          onPress={() => {
-            console.log('Settings pressed');
-          }}>
-          <Icon
-            name="settings"
-            size={24}
-            color={isDarkMode ? Colors.white : Colors.black}
-          />
-        </TouchableOpacity> */}
+      <View style={[styles.headerContainer, headerStyle]}>
+        <View style={styles.header}>
+          <Text style={[styles.headerTitle, headerTitle]}>Psalms Way!</Text>
         </View>
         <View>
-          <Text style={styles.chapterTitle}>
-            {showChapter
-              ? `Chapter ${currentChapter}`
-              : `Chapter ${currentChapter}:${currentVerse}`}
+          <Text style={[styles.chapterTitle, chapterTitleStyle]}>
+            {!showChapterSelect
+              ? `Chapter ${currentChapter}${
+                  showChapter ? '' : `:${currentVerse}`
+                }`
+              : 'Please select a chapter'}
           </Text>
         </View>
       </View>
-
       {showChapterSelect ? (
-        <ChapterSelectScreen onSelectChapter={selectChapter} />
+        <ChapterSelectScreen onSelectChapter={onSelectChapter} />
       ) : (
         <ScrollView
           contentInsetAdjustmentBehavior="automatic"
           style={backgroundStyle}>
-          <View
-            style={[
-              styles.viewStyle,
-              {
-                backgroundColor: isDarkMode ? Colors.black : Colors.white,
-              },
-              styles.verse,
-            ]}>
+          <View style={styles.verseContainer}>
             {showChapter ? (
               <ChapterScreen chapterNumber={currentChapter} />
             ) : (
@@ -126,136 +101,156 @@ function App(): React.JSX.Element {
           </View>
         </ScrollView>
       )}
-      <Divider orientation="vertical" />
 
-      <View style={styles.navigation}>
-        <TouchableOpacity style={styles.button} onPress={handlePreviousChapter}>
-          <Text style={styles.buttonText}>Previous</Text>
-        </TouchableOpacity>
-        {!showChapterSelect && (
+      <Divider />
+      {!showChapterSelect && (
+        <View style={styles.navigation}>
           <TouchableOpacity
-            style={styles.button}
-            onPress={() => setShowChapterSelect(true)} // Show the chapter selection screen
-          >
-            <Text style={styles.buttonText}>Chapters</Text>
+            style={[styles.button, buttonStyle]}
+            onPress={onNewVerse}>
+            <Text style={[styles.buttonText, buttonText]}>New Verse</Text>
           </TouchableOpacity>
-        )}
-        {showChapterSelect && (
           <TouchableOpacity
-            style={styles.button}
-            onPress={() => setShowChapterSelect(false)} // Show the chapter selection screen
-          >
-            <Text style={styles.buttonText}>Close</Text>
+            style={[styles.button, buttonStyle]}
+            onPress={onNewChapter}>
+            <Text style={[styles.buttonText, buttonText]}>New Chapter</Text>
           </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.button} onPress={handleNextChapter}>
-          <Text style={styles.buttonText}>Next</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      )}
       <View style={styles.navigation}>
-        <TouchableOpacity style={styles.button} onPress={handleNewVerse}>
-          <Text style={styles.buttonText}>New Verse</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.button}
-          onPress={() => handleNewChapter()}>
-          <Text style={styles.buttonText}>New Chapter</Text>
-        </TouchableOpacity>
+        {showChapterSelect ? (
+          <TouchableOpacity
+            style={[styles.button, buttonStyle]}
+            onPress={toggleChapterSelect}>
+            <Text style={[styles.buttonText, buttonText]}>Close</Text>
+          </TouchableOpacity>
+        ) : (
+          <>
+            <TouchableOpacity
+              style={[styles.button, buttonStyle]}
+              onPress={onPreviousChapter}>
+              <Text style={[styles.buttonText, buttonText]}>Previous</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, buttonStyle]}
+              onPress={toggleChapterSelect}>
+              <Text style={[styles.buttonText, buttonText]}>Chapters</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.button, buttonStyle]}
+              onPress={onNextChapter}>
+              <Text style={[styles.buttonText, buttonText]}>Next</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
+  verseContainer: {
+    marginBottom: 8,
+  },
+  headerContainer: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light,
+  },
   header: {
-    flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 4,
-    marginBottom: 8,
+    marginBottom: 4,
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
-    textAlign: 'center',
-    borderStyle: 'solid',
-    borderBottomWidth: 1,
-    borderTopWidth: 1,
-    borderLeftWidth: 1,
-    borderRightWidth: 1,
-    padding: 4,
-    paddingHorizontal: 16,
+    borderWidth: 1, // This sets the width of the border
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    fontFamily: 'Roboto',
   },
   chapterTitle: {
-    fontSize: 20,
+    fontSize: 18,
     color: 'black',
     fontWeight: 'bold',
-    fontStyle: 'normal',
-    fontFamily: 'calibri',
-    marginVertical: 4,
-    marginHorizontal: 8,
-  },
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-  viewStyle: {
-    marginBottom: 8,
-    fontSize: 24,
-  },
-  verse: {
-    fontSize: 18,
-    fontStyle: 'normal',
-    fontWeight: 'normal',
-    lineHeight: 30, // Increased line height for better readability
-    paddingHorizontal: 8, // Add padding to the sides of the verses
-    paddingVertical: 4,
-    marginVertical: 4, // Add vertical margin for spacing between verses
-    borderRadius: 5, // Optional: rounded corners for each verse background
-  },
-  safeArea: {
-    flex: 1, // This ensures the SafeAreaView fills all available space
-    justifyContent: 'space-between', // Positions children at start and end of container
+    marginVertical: 8,
+    textAlign: 'left',
+    paddingHorizontal: 8,
+    fontFamily: 'Roboto',
   },
   navigation: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // If you want to remove any space between the buttons, change this to 'space-around' or 'space-evenly'
+    justifyContent: 'space-around',
     padding: 4,
-    backgroundColor: 'white',
   },
   button: {
-    flex: 1,
-    backgroundColor: '#fff',
-    borderColor: '#000',
     borderWidth: 1,
-    padding: 10,
+    padding: 8,
     borderRadius: 5,
     alignItems: 'center',
     margin: 2,
+    marginHorizontal: 8,
+    flex: 1,
   },
   buttonText: {
-    color: '#000',
+    fontSize: 18,
+    fontFamily: 'Roboto',
   },
-  input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: 'gray',
-    padding: 10,
-    marginHorizontal: 5, // Keep consistent spacing between input and buttons
-    // If you want the input field to be smaller than the buttons, you can use flexGrow, flexShrink, and flexBasis instead of flex
+});
+
+// Light theme styles
+const lightStyles = StyleSheet.create({
+  background: {
+    backgroundColor: Colors.white,
   },
+  headerTitle: {
+    color: Colors.darker,
+    borderColor: Colors.black,
+  },
+  header: {
+    borderBottomColor: Colors.light,
+  },
+  chapterTitle: {
+    color: Colors.darker,
+  },
+  button: {
+    backgroundColor: Colors.white,
+    borderColor: Colors.dark,
+  },
+  buttonText: {
+    color: Colors.darker,
+  },
+  // ... Any other light theme specific styles
+});
+
+// Dark theme styles
+const darkStyles = StyleSheet.create({
+  background: {
+    backgroundColor: Colors.black,
+  },
+  headerTitle: {
+    color: Colors.white,
+    borderColor: Colors.white,
+  },
+  header: {
+    borderBottomColor: Colors.dark,
+  },
+  chapterTitle: {
+    color: Colors.lighter,
+  },
+  button: {
+    backgroundColor: Colors.black,
+    borderColor: Colors.light,
+  },
+  buttonText: {
+    color: Colors.lighter,
+  },
+  // ... Any other dark theme specific styles
 });
 
 export default App;

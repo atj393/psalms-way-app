@@ -12,5 +12,6 @@ export const getPsalmsVerse = (
   verseNumber: number,
 ): string => {
   const chapter = PsalmsData[chapterNumber - 1];
-  return (chapter && chapter[verseNumber - 1]) || '';
+  const randomVerse = Math.floor(Math.random() * chapter.length); // Assuming each chapter has 6 verses
+  return (chapter && chapter[randomVerse - 1]) || '';
 };
