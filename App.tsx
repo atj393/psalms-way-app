@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -12,8 +12,13 @@ import ChapterVerseScreen from './pages/ChapterVerseScreen';
 import ChapterSelectScreen from './pages/ChapterSelectScreen';
 import HeaderComponent from './components/HeaderComponent';
 import NavigationComponent from './components/NavigationComponent';
+import SplashScreen from 'react-native-splash-screen';
 
 function App() {
+  useEffect(() => {
+    SplashScreen.hide();
+  }, []);
+
   const isDarkMode = useColorScheme() === 'dark';
   const [showChapter, setShowChapter] = useState(false);
   const [showChapterSelect, setShowChapterSelect] = useState(false);
