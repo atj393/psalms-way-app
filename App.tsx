@@ -1,7 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {
-  Text,
-  TouchableOpacity,
   SafeAreaView,
   ScrollView,
   StyleSheet,
@@ -12,8 +10,8 @@ import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ChapterScreen from './pages/ChapterScreen';
 import ChapterVerseScreen from './pages/ChapterVerseScreen';
 import ChapterSelectScreen from './pages/ChapterSelectScreen';
-import {Divider} from 'react-native-elements';
-import HeaderComponent from './components/headerComponent';
+import HeaderComponent from './components/HeaderComponent';
+import NavigationComponent from './components/NavigationComponent';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -25,10 +23,6 @@ function App() {
   const backgroundStyle = isDarkMode
     ? darkStyles.background
     : lightStyles.background;
-  const buttonStyle = isDarkMode ? darkStyles.button : lightStyles.button;
-  const buttonText = isDarkMode
-    ? darkStyles.buttonText
-    : lightStyles.buttonText;
 
   const toggleChapterSelect = () => setShowChapterSelect(!showChapterSelect);
 
@@ -72,6 +66,7 @@ function App() {
         currentVerse={currentVerse}
         showChapter={showChapter}
       />
+
       {showChapterSelect ? (
         <ChapterSelectScreen onSelectChapter={onSelectChapter} />
       ) : (
@@ -91,49 +86,15 @@ function App() {
         </ScrollView>
       )}
 
-      <Divider />
-      {!showChapterSelect && (
-        <View style={styles.navigation}>
-          <TouchableOpacity
-            style={[styles.button, buttonStyle]}
-            onPress={onNewVerse}>
-            <Text style={[styles.buttonText, buttonText]}>New Verse</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.button, buttonStyle]}
-            onPress={onNewChapter}>
-            <Text style={[styles.buttonText, buttonText]}>New Chapter</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-      <View style={styles.navigation}>
-        {showChapterSelect ? (
-          <TouchableOpacity
-            style={[styles.button, buttonStyle]}
-            onPress={toggleChapterSelect}>
-            <Text style={[styles.buttonText, buttonText]}>Close</Text>
-          </TouchableOpacity>
-        ) : (
-          <>
-            <TouchableOpacity
-              style={[styles.button, buttonStyle]}
-              onPress={onPreviousChapter}>
-              <Text style={[styles.buttonText, buttonText]}>Previous</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={[styles.button, buttonStyle]}
-              onPress={toggleChapterSelect}>
-              <Text style={[styles.buttonText, buttonText]}>Chapters</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, buttonStyle]}
-              onPress={onNextChapter}>
-              <Text style={[styles.buttonText, buttonText]}>Next</Text>
-            </TouchableOpacity>
-          </>
-        )}
-      </View>
+      <NavigationComponent
+        isDarkMode={isDarkMode}
+        showChapterSelect={showChapterSelect}
+        onPreviousChapter={onPreviousChapter}
+        onNextChapter={onNextChapter}
+        toggleChapterSelect={toggleChapterSelect}
+        onNewVerse={onNewVerse}
+        onNewChapter={onNewChapter}
+      />
     </SafeAreaView>
   );
 }
@@ -149,24 +110,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.light,
   },
-  navigation: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    padding: 4,
-  },
-  button: {
-    borderWidth: 1,
-    padding: 8,
-    borderRadius: 5,
-    alignItems: 'center',
-    margin: 2,
-    marginHorizontal: 8,
-    flex: 1,
-  },
-  buttonText: {
-    fontSize: 18,
-    fontFamily: 'Roboto',
-  },
 });
 
 // Light theme styles
@@ -174,26 +117,12 @@ const lightStyles = StyleSheet.create({
   background: {
     backgroundColor: Colors.white,
   },
-  button: {
-    backgroundColor: Colors.white,
-    borderColor: Colors.dark,
-  },
-  buttonText: {
-    color: Colors.darker,
-  },
 });
 
 // Dark theme styles
 const darkStyles = StyleSheet.create({
   background: {
     backgroundColor: Colors.black,
-  },
-  button: {
-    backgroundColor: Colors.black,
-    borderColor: Colors.light,
-  },
-  buttonText: {
-    color: Colors.lighter,
   },
 });
 
