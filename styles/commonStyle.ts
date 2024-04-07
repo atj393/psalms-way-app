@@ -6,7 +6,7 @@ export const getCommonStyles = (isDarkMode: any) => {
   const backgroundColor = isDarkMode ? Colors.black : Colors.white;
   const textColor = isDarkMode ? Colors.white : Colors.black;
   const oddVerseBackgroundColor = isDarkMode ? Colors.black : Colors.white;
-  const evenVerseBackgroundColor = isDarkMode ? Colors.dark : Colors.light;
+  const evenVerseBackgroundColor = isDarkMode ? Colors.darker : Colors.lighter;
   //const evenVerseBackgroundColor = isDarkMode ? '#444' : '#ddd';
 
   return StyleSheet.create({
