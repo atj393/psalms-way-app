@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -46,9 +46,7 @@ function App() {
 
   const onNewVerse = () => {
     const randomChapter = Math.floor(Math.random() * 150) + 1;
-    const randomVerse = Math.floor(Math.random() * 6) + 1; // Assuming each chapter has 6 verses
     setCurrentChapter(randomChapter);
-    setCurrentVerse(randomVerse);
     setShowChapter(false);
   };
 
@@ -66,6 +64,10 @@ function App() {
     setCurrentChapter(prev => (prev === 150 ? 1 : prev + 1));
     setShowChapter(true);
   };
+
+  const onUpdateVerseNumber = useCallback((verseNumber: number) => {
+    setCurrentVerse(verseNumber);
+  }, []);
 
   return (
     <SafeAreaView style={[styles.safeArea, backgroundStyle]}>
@@ -95,7 +97,7 @@ function App() {
             ) : (
               <ChapterVerseScreen
                 chapterNumber={currentChapter}
-                verseNumber={currentVerse}
+                onUpdateVerseNumber={onUpdateVerseNumber}
               />
             )}
           </View>

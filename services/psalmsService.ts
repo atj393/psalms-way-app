@@ -7,11 +7,18 @@ export const getPsalmsChapter = (chapterNumber: number): Verse[] => {
   return PsalmsData[chapterNumber - 1] || [];
 };
 
-export const getPsalmsVerse = (
-  chapterNumber: number,
-  verseNumber: number,
-): string => {
+export type VerseDetail = {
+  verse: string;
+  verseNumber: number;
+};
+
+export const getPsalmsVerse = (chapterNumber: number): VerseDetail | null => {
   const chapter = PsalmsData[chapterNumber - 1];
-  const randomVerse = Math.floor(Math.random() * chapter.length); // Assuming each chapter has 6 verses
-  return (chapter && chapter[randomVerse - 1]) || '';
+  const randomVerse = Math.floor(Math.random() * chapter.length);
+  return (
+    chapter && {
+      verse: chapter[randomVerse] || '',
+      verseNumber: randomVerse + 1,
+    }
+  );
 };
