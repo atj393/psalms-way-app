@@ -3,13 +3,19 @@ import {View, Text, ScrollView, useColorScheme} from 'react-native';
 import {getPsalmsVerse} from './../services/psalmsService'; // Update the import path as necessary
 import {getCommonStyles} from '../styles/commonStyle';
 
+// Assuming the VerseDetail type looks something like this
+interface VerseDetail {
+  verse: string;
+  verseNumber: number;
+}
+
 interface ChapterVerseProps {
   chapterNumber: number; // The chapter number to display
-  verseNumber: number; // The verse number to display within the chapter
+  onUpdateVerseNumber: (verseNumber: number) => void; // New prop for updating verse number in App.tsx
 }
 
 interface LoadingProps {
-  commonStyles: any; // Replace 'any' with the actual type of your styles
+  commonStyles: ReturnType<typeof getCommonStyles>;
 }
 
 const Loading: React.FC<LoadingProps> = ({commonStyles}) => (
@@ -20,28 +26,34 @@ const Loading: React.FC<LoadingProps> = ({commonStyles}) => (
 
 const ChapterVerseScreen: React.FC<ChapterVerseProps> = ({
   chapterNumber,
-  verseNumber,
+  onUpdateVerseNumber,
 }) => {
-  const [verseContent, setVerseContent] = useState<string | null>(null);
+  const [verseDetail, setVerseDetail] = useState<VerseDetail | null>(null);
   const isDarkMode = useColorScheme() === 'dark';
   const commonStyles = getCommonStyles(isDarkMode);
 
   useEffect(() => {
     const fetchVerse = async () => {
-      const verse = await getPsalmsVerse(chapterNumber, verseNumber);
-      setVerseContent(verse);
+      const fetchVerseDetail = await getPsalmsVerse(chapterNumber);
+
+      setVerseDetail(fetchVerseDetail);
+      // Call the callback function with the verse number
+      if (fetchVerseDetail) {
+        onUpdateVerseNumber(fetchVerseDetail.verseNumber);
+      }
     };
 
     fetchVerse();
-  }, [chapterNumber, verseNumber]);
+  }, [chapterNumber, onUpdateVerseNumber]);
 
-  if (!verseContent) {
+  if (!verseDetail) {
     return <Loading commonStyles={commonStyles} />;
   }
 
   return (
     <ScrollView style={commonStyles.container}>
-      <Text style={commonStyles.verse}>{verseContent}</Text>
+      {/* Display the verse number and verse text */}
+      <Text style={commonStyles.verse}>{verseDetail.verse}</Text>
     </ScrollView>
   );
 };
