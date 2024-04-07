@@ -13,6 +13,7 @@ import ChapterScreen from './pages/ChapterScreen';
 import ChapterVerseScreen from './pages/ChapterVerseScreen';
 import ChapterSelectScreen from './pages/ChapterSelectScreen';
 import {Divider} from 'react-native-elements';
+import HeaderComponent from './components/headerComponent';
 
 function App() {
   const isDarkMode = useColorScheme() === 'dark';
@@ -24,13 +25,6 @@ function App() {
   const backgroundStyle = isDarkMode
     ? darkStyles.background
     : lightStyles.background;
-  const headerTitle = isDarkMode
-    ? darkStyles.headerTitle
-    : lightStyles.headerTitle;
-  const headerStyle = isDarkMode ? darkStyles.header : lightStyles.header;
-  const chapterTitleStyle = isDarkMode
-    ? darkStyles.chapterTitle
-    : lightStyles.chapterTitle;
   const buttonStyle = isDarkMode ? darkStyles.button : lightStyles.button;
   const buttonText = isDarkMode
     ? darkStyles.buttonText
@@ -71,20 +65,13 @@ function App() {
 
   return (
     <SafeAreaView style={[styles.safeArea, backgroundStyle]}>
-      <View style={[styles.headerContainer, headerStyle]}>
-        <View style={styles.header}>
-          <Text style={[styles.headerTitle, headerTitle]}>Psalms Way!</Text>
-        </View>
-        <View>
-          <Text style={[styles.chapterTitle, chapterTitleStyle]}>
-            {!showChapterSelect
-              ? `Chapter ${currentChapter}${
-                  showChapter ? '' : `:${currentVerse}`
-                }`
-              : 'Please select a chapter'}
-          </Text>
-        </View>
-      </View>
+      <HeaderComponent
+        isDarkMode={isDarkMode}
+        showChapterSelect={showChapterSelect}
+        currentChapter={currentChapter}
+        currentVerse={currentVerse}
+        showChapter={showChapter}
+      />
       {showChapterSelect ? (
         <ChapterSelectScreen onSelectChapter={onSelectChapter} />
       ) : (
@@ -162,29 +149,6 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: Colors.light,
   },
-  header: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 4,
-    marginBottom: 4,
-  },
-  headerTitle: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    borderWidth: 1, // This sets the width of the border
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    fontFamily: 'Roboto',
-  },
-  chapterTitle: {
-    fontSize: 18,
-    color: 'black',
-    fontWeight: 'bold',
-    marginVertical: 8,
-    textAlign: 'left',
-    paddingHorizontal: 8,
-    fontFamily: 'Roboto',
-  },
   navigation: {
     flexDirection: 'row',
     justifyContent: 'space-around',
@@ -210,16 +174,6 @@ const lightStyles = StyleSheet.create({
   background: {
     backgroundColor: Colors.white,
   },
-  headerTitle: {
-    color: Colors.darker,
-    borderColor: Colors.black,
-  },
-  header: {
-    borderBottomColor: Colors.light,
-  },
-  chapterTitle: {
-    color: Colors.darker,
-  },
   button: {
     backgroundColor: Colors.white,
     borderColor: Colors.dark,
@@ -227,23 +181,12 @@ const lightStyles = StyleSheet.create({
   buttonText: {
     color: Colors.darker,
   },
-  // ... Any other light theme specific styles
 });
 
 // Dark theme styles
 const darkStyles = StyleSheet.create({
   background: {
     backgroundColor: Colors.black,
-  },
-  headerTitle: {
-    color: Colors.white,
-    borderColor: Colors.white,
-  },
-  header: {
-    borderBottomColor: Colors.dark,
-  },
-  chapterTitle: {
-    color: Colors.lighter,
   },
   button: {
     backgroundColor: Colors.black,
@@ -252,7 +195,6 @@ const darkStyles = StyleSheet.create({
   buttonText: {
     color: Colors.lighter,
   },
-  // ... Any other dark theme specific styles
 });
 
 export default App;
