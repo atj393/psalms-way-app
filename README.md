@@ -1,79 +1,82 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Psalms Way App
 
-# Getting Started
+## Overview
 
->**Note**: Make sure you have completed the [React Native - Environment Setup](https://reactnative.dev/docs/environment-setup) instructions till "Creating a new application" step, before proceeding.
+Psalms Way is a thoughtful mobile application designed to enrich users' lives with the spiritual wisdom of the Book of Psalms. It offers an easily navigable interface to access random chapters and verses for reflection and inspiration. Designed for both Android and iOS, Psalms Way stands out for its simplicity, offline access, and the personalized journey it offers through the Psalms.
 
-## Step 1: Start the Metro Server
+## Features
 
-First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
+### Random Verses
 
-To start Metro, run the following command from the _root_ of your React Native project:
+- Delivers random verses from the Book of Psalms, offering daily inspiration and contemplation opportunities.
 
-```bash
-# using npm
-npm start
+### Offline Access
 
-# OR using Yarn
-yarn start
-```
+- Psalms Way provides complete offline functionality, ensuring that the wisdom of the Psalms is always at your fingertips, regardless of your internet connection.
 
-## Step 2: Start your Application
+## Technical Details
 
-Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
+Psalms Way is developed using React Native, enabling a cross-platform mobile experience that is both efficient and scalable.
 
-### For Android
+### Android & iOS
 
-```bash
-# using npm
-npm run android
+- **Build Configurations**: The app's build configurations for Android are specified in the `android/app/build.gradle` file. For iOS, configurations are managed within the Xcode project settings.
+- **Signing Configurations**: Android release builds are signed with a keystore, details of which are specified in `android/gradle.properties`. iOS signing is managed via Xcode, utilizing development and distribution certificates.
 
-# OR using Yarn
-yarn android
-```
+### Dependencies
 
-### For iOS
+Psalms Way leverages various third-party libraries to enhance its functionality:
 
-```bash
-# using npm
-npm run ios
+- `react-native` for the core framework.
+- `react-navigation` for intuitive navigation between different screens.
+- `redux` for state management across the app.
+- `react-native-splash-screen` to display a launch screen.
 
-# OR using Yarn
-yarn ios
-```
+## Getting Started
 
-If everything is set up _correctly_, you should see your new app running in your _Android Emulator_ or _iOS Simulator_ shortly provided you have set up your emulator/simulator correctly.
+### Prerequisites
 
-This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
+- Install Node.js and npm on your development machine.
+- Install React Native CLI: `npm install -g react-native-cli`.
+- Android development requires Android Studio and the Android SDK.
+- iOS development requires Xcode installed on a macOS system.
 
-## Step 3: Modifying your App
+### Installation
 
-Now that you have successfully run the app, let's modify it.
+1. **Clone the repository**:
+   ```bash
+   git clone https://github.com/atj393/psalms-way-app.git
+   ```
+2. Install dependencies:
+   Navigate to the cloned repository directory and run:
+   bash
+   ```bash
+   npm install
+   ```
+3. Start the Metro bundler:
+   In the project directory, execute:
+   ```bash
+   npx react-native start
+   ```
+4. Run the app:
 
-1. Open `App.tsx` in your text editor of choice and edit some lines.
-2. For **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Developer Menu** (<kbd>Ctrl</kbd> + <kbd>M</kbd> (on Window and Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (on macOS)) to see your changes!
+   For Android: `npx react-native run-android`
 
-   For **iOS**: Hit <kbd>Cmd ⌘</kbd> + <kbd>R</kbd> in your iOS Simulator to reload the app and see your changes!
+   For iOS: npx `react-native run-ios`
 
-## Congratulations! :tada:
+## Contributing
 
-You've successfully run and modified your React Native App. :partying_face:
+Contributions to Psalms Way are warmly welcomed, whether they be feature requests, bug fixes, documentation improvements, or new translations.
 
-### Now what?
+### If you're looking to contribute:
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [Introduction to React Native](https://reactnative.dev/docs/getting-started).
+1. Fork the repository.
+2. Create a new branch for your feature or fix.
+3. Commit your changes.
+4. Push your branch and open a Pull Request.
 
-# Troubleshooting
+For more details, please refer to our contributing guidelines (link to guidelines).
 
-If you can't get this to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## License
 
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Psalms Way is open source software licensed under the MIT license.
