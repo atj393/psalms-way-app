@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   SafeAreaView,
   ScrollView,
@@ -14,11 +14,12 @@ import HeaderComponent from './components/HeaderComponent';
 import NavigationComponent from './components/NavigationComponent';
 import SplashScreen from 'react-native-splash-screen';
 
-function App() {
+const App: React.FC = () => {
   useEffect(() => {
     SplashScreen.hide();
   }, []);
 
+  const scrollViewRef = useRef<ScrollView>(null);
   const isDarkMode = useColorScheme() === 'dark';
   const [showChapter, setShowChapter] = useState(false);
   const [showChapterSelect, setShowChapterSelect] = useState(false);
@@ -41,21 +42,29 @@ function App() {
     const randomChapter = Math.floor(Math.random() * 150) + 1;
     setCurrentChapter(randomChapter);
     setShowChapter(false);
+    scrollToTop();
   };
 
   const onNewChapter = () => {
     setCurrentChapter(Math.floor(Math.random() * 150) + 1);
     setShowChapter(true);
+    scrollToTop();
   };
 
   const onPreviousChapter = () => {
     setCurrentChapter(prev => (prev === 1 ? 150 : prev - 1));
     setShowChapter(true);
+    scrollToTop();
   };
 
   const onNextChapter = () => {
     setCurrentChapter(prev => (prev === 150 ? 1 : prev + 1));
     setShowChapter(true);
+    scrollToTop();
+  };
+
+  const scrollToTop = () => {
+    scrollViewRef.current?.scrollTo({y: 0, animated: true});
   };
 
   const onUpdateVerseNumber = useCallback((verseNumber: number) => {
@@ -76,6 +85,7 @@ function App() {
         <ChapterSelectScreen onSelectChapter={onSelectChapter} />
       ) : (
         <ScrollView
+          ref={scrollViewRef}
           contentInsetAdjustmentBehavior="automatic"
           style={backgroundStyle}>
           <View style={styles.verseContainer}>
@@ -102,7 +112,7 @@ function App() {
       />
     </SafeAreaView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   safeArea: {
