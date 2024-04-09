@@ -16,7 +16,7 @@ export const getCommonStyles = (isDarkMode: any) => {
       backgroundColor: backgroundColor,
     },
     verse: {
-      fontSize: 18,
+      fontSize: 20,
       fontFamily: 'Roboto',
       fontStyle: 'normal',
       fontWeight: 'normal',
