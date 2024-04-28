@@ -13,6 +13,7 @@ import ChapterSelectScreen from './pages/ChapterSelectScreen';
 import HeaderComponent from './components/HeaderComponent';
 import NavigationComponent from './components/NavigationComponent';
 import SplashScreen from 'react-native-splash-screen';
+import SettingsModal from './pages/settings';
 
 const App: React.FC = () => {
   useEffect(() => {
@@ -25,6 +26,7 @@ const App: React.FC = () => {
   const [showChapterSelect, setShowChapterSelect] = useState(false);
   const [currentChapter, setCurrentChapter] = useState(1);
   const [currentVerse, setCurrentVerse] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
 
   const backgroundStyle = isDarkMode
     ? darkStyles.background
@@ -71,6 +73,12 @@ const App: React.FC = () => {
     setCurrentVerse(verseNumber);
   }, []);
 
+  useEffect(() => {
+    if (showSettings) {
+      setShowChapterSelect(false);
+    }
+  }, [showSettings]);
+
   return (
     <SafeAreaView style={[styles.safeArea, backgroundStyle]}>
       <HeaderComponent
@@ -79,37 +87,43 @@ const App: React.FC = () => {
         currentChapter={currentChapter}
         currentVerse={currentVerse}
         showChapter={showChapter}
+        onSettingsPress={() => setShowSettings(!showSettings)}
+        isSettingsOpen={showSettings}
       />
+      {showSettings && <SettingsModal />}
 
-      {showChapterSelect ? (
-        <ChapterSelectScreen onSelectChapter={onSelectChapter} />
-      ) : (
-        <ScrollView
-          ref={scrollViewRef}
-          contentInsetAdjustmentBehavior="automatic"
-          style={backgroundStyle}>
-          <View style={styles.verseContainer}>
-            {showChapter ? (
-              <ChapterScreen chapterNumber={currentChapter} />
-            ) : (
-              <ChapterVerseScreen
-                chapterNumber={currentChapter}
-                onUpdateVerseNumber={onUpdateVerseNumber}
-              />
-            )}
-          </View>
-        </ScrollView>
+      {!showSettings &&
+        (showChapterSelect ? (
+          <ChapterSelectScreen onSelectChapter={onSelectChapter} />
+        ) : (
+          <ScrollView
+            ref={scrollViewRef}
+            contentInsetAdjustmentBehavior="automatic"
+            style={backgroundStyle}>
+            <View style={styles.verseContainer}>
+              {showChapter ? (
+                <ChapterScreen chapterNumber={currentChapter} />
+              ) : (
+                <ChapterVerseScreen
+                  chapterNumber={currentChapter}
+                  onUpdateVerseNumber={onUpdateVerseNumber}
+                />
+              )}
+            </View>
+          </ScrollView>
+        ))}
+
+      {!showSettings && (
+        <NavigationComponent
+          isDarkMode={isDarkMode}
+          showChapterSelect={showChapterSelect}
+          onPreviousChapter={onPreviousChapter}
+          onNextChapter={onNextChapter}
+          toggleChapterSelect={toggleChapterSelect}
+          onNewVerse={onNewVerse}
+          onNewChapter={onNewChapter}
+        />
       )}
-
-      <NavigationComponent
-        isDarkMode={isDarkMode}
-        showChapterSelect={showChapterSelect}
-        onPreviousChapter={onPreviousChapter}
-        onNextChapter={onNextChapter}
-        toggleChapterSelect={toggleChapterSelect}
-        onNewVerse={onNewVerse}
-        onNewChapter={onNewChapter}
-      />
     </SafeAreaView>
   );
 };
