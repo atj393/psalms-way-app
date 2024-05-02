@@ -1,6 +1,7 @@
 import React, {FC} from 'react';
-import {View, Text, StyleSheet} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import SVGComponent from './SVGComponent';
 
 interface HeaderComponentProps {
   isDarkMode: boolean;
@@ -8,6 +9,8 @@ interface HeaderComponentProps {
   currentChapter: number;
   currentVerse: number;
   showChapter: boolean;
+  isSettingsOpen: boolean;
+  onSettingsPress: () => void;
 }
 
 const HeaderComponent: FC<HeaderComponentProps> = ({
@@ -16,6 +19,8 @@ const HeaderComponent: FC<HeaderComponentProps> = ({
   currentChapter,
   currentVerse,
   showChapter,
+  isSettingsOpen,
+  onSettingsPress,
 }) => {
   const headerStyle = isDarkMode ? darkStyles.header : lightStyles.header;
   const headerTitleStyle = isDarkMode
@@ -29,43 +34,56 @@ const HeaderComponent: FC<HeaderComponentProps> = ({
     <View style={[styles.headerContainer, headerStyle]}>
       <View style={styles.header}>
         <Text style={[styles.headerTitle, headerTitleStyle]}>Psalms Way!</Text>
+        <TouchableOpacity onPress={onSettingsPress} style={styles.settingsIcon}>
+          <SVGComponent
+            size="24px"
+            name={!isSettingsOpen ? 'settings' : 'close'}
+          />
+        </TouchableOpacity>
       </View>
-      <View>
-        <Text
-          style={[
-            styles.chapterTitle,
-            chapterTitleStyle,
-            showChapterSelect && styles.chapterTitleChapters,
-          ]}>
-          {!showChapterSelect
-            ? `Chapter ${currentChapter}${
-                showChapter ? '' : `:${currentVerse}`
-              }`
-            : 'Please select a chapter'}
-        </Text>
-      </View>
+      <Text
+        style={[
+          styles.chapterTitle,
+          chapterTitleStyle,
+          showChapterSelect && styles.chapterTitleChapters,
+        ]}>
+        {isSettingsOpen
+          ? 'Settings'
+          : !showChapterSelect
+          ? `Chapter ${currentChapter}${showChapter ? '' : `:${currentVerse}`}`
+          : 'Please select a chapter'}
+      </Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   headerContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 8,
     borderBottomWidth: 1,
     borderBottomColor: Colors.light,
   },
   header: {
-    justifyContent: 'center',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 4,
     marginBottom: 4,
+  },
+  settingsIcon: {
+    flex: 1,
+    padding: 4,
+    alignItems: 'flex-end',
   },
   headerTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    borderWidth: 1,
     paddingHorizontal: 12,
     paddingVertical: 4,
     fontFamily: 'Roboto',
+    borderWidth: 1,
   },
   chapterTitle: {
     fontSize: 18,
