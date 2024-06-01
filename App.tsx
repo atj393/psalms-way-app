@@ -14,10 +14,35 @@ import HeaderComponent from './components/HeaderComponent';
 import NavigationComponent from './components/NavigationComponent';
 import SplashScreen from 'react-native-splash-screen';
 import SettingsModal from './pages/settings';
+import {scheduleDailyVerseNotification} from './services/NotificationService';
+import eventEmitter from './services/EventEmitter';
 
 const App: React.FC = () => {
   useEffect(() => {
     SplashScreen.hide();
+
+    const handleNotificationClick = ({
+      chapter,
+      verse,
+    }: {
+      chapter: number;
+      verse: number;
+    }) => {
+      setCurrentChapter(chapter);
+      setCurrentVerse(verse);
+      setShowChapter(true);
+      setTimeout(() => {
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({y: verse * 40, animated: true});
+        }
+      }, 200);
+    };
+
+    eventEmitter.addListener('notificationClick', handleNotificationClick);
+
+    return () => {
+      eventEmitter.removeAllListeners('notificationClick');
+    };
   }, []);
 
   const scrollViewRef = useRef<ScrollView>(null);
@@ -35,6 +60,7 @@ const App: React.FC = () => {
   const toggleChapterSelect = () => setShowChapterSelect(!showChapterSelect);
 
   const onSelectChapter = (chapter: React.SetStateAction<number>) => {
+    setCurrentVerse(0);
     setCurrentChapter(chapter);
     setShowChapter(true);
     toggleChapterSelect();
@@ -50,16 +76,20 @@ const App: React.FC = () => {
   const onNewChapter = () => {
     setCurrentChapter(Math.floor(Math.random() * 150) + 1);
     setShowChapter(true);
+    setCurrentVerse(0);
     scrollToTop();
+    scheduleDailyVerseNotification();
   };
 
   const onPreviousChapter = () => {
+    setCurrentVerse(0);
     setCurrentChapter(prev => (prev === 1 ? 150 : prev - 1));
     setShowChapter(true);
     scrollToTop();
   };
 
   const onNextChapter = () => {
+    setCurrentVerse(0);
     setCurrentChapter(prev => (prev === 150 ? 1 : prev + 1));
     setShowChapter(true);
     scrollToTop();
@@ -102,7 +132,10 @@ const App: React.FC = () => {
             style={backgroundStyle}>
             <View style={styles.verseContainer}>
               {showChapter ? (
-                <ChapterScreen chapterNumber={currentChapter} />
+                <ChapterScreen
+                  chapterNumber={currentChapter}
+                  currentVerse={currentVerse}
+                />
               ) : (
                 <ChapterVerseScreen
                   chapterNumber={currentChapter}
