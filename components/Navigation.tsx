@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {useTheme} from '../theme';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {spacing, useTheme} from '../theme';
 
 type Props = {
   onNewVerse: () => void;
@@ -18,32 +19,60 @@ export default function Navigation({
   onOpenChapterSelect,
 }: Props) {
   const {colors, fontSize} = useTheme();
+  const insets = useSafeAreaInsets();
 
-  const btnStyle = [
-    styles.btn,
-    {borderColor: colors.border, backgroundColor: colors.surface},
-  ];
-  const txtStyle = [styles.btnText, {color: colors.text, fontSize: fontSize - 4}];
+  const btnTextSize = fontSize - 4;
 
   return (
-    <View style={[styles.container, {borderTopColor: colors.border, backgroundColor: colors.background}]}>
+    <View
+      style={[
+        styles.container,
+        {
+          borderTopColor: colors.border,
+          backgroundColor: colors.background,
+          paddingBottom: Math.max(insets.bottom, spacing.sm),
+        },
+      ]}>
+      {/* Row 1: Primary actions */}
       <View style={styles.row}>
-        <TouchableOpacity style={[btnStyle, styles.flex]} onPress={onNewVerse}>
-          <Text style={txtStyle}>New Verse</Text>
+        <TouchableOpacity
+          style={[styles.btnPrimary, {backgroundColor: colors.primary}]}
+          onPress={onNewVerse}>
+          <Text style={[styles.btnPrimaryText, {fontSize: btnTextSize}]}>
+            New Verse
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[btnStyle, styles.flex]} onPress={onNewChapter}>
-          <Text style={txtStyle}>New Chapter</Text>
+        <TouchableOpacity
+          style={[styles.btnPrimary, {backgroundColor: colors.primary}]}
+          onPress={onNewChapter}>
+          <Text style={[styles.btnPrimaryText, {fontSize: btnTextSize}]}>
+            New Chapter
+          </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Row 2: Navigation actions */}
       <View style={styles.row}>
-        <TouchableOpacity style={[btnStyle, styles.flex]} onPress={onPrevChapter}>
-          <Text style={txtStyle}>◀ Prev</Text>
+        <TouchableOpacity
+          style={[styles.btnSecondary, {borderColor: colors.border, backgroundColor: colors.surface}]}
+          onPress={onPrevChapter}>
+          <Text style={[styles.btnSecondaryText, {color: colors.text, fontSize: btnTextSize}]}>
+            ◀ Prev
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[btnStyle, styles.flex]} onPress={onOpenChapterSelect}>
-          <Text style={txtStyle}>Chapters</Text>
+        <TouchableOpacity
+          style={[styles.btnSecondary, {borderColor: colors.border, backgroundColor: colors.surface}]}
+          onPress={onOpenChapterSelect}>
+          <Text style={[styles.btnSecondaryText, {color: colors.text, fontSize: btnTextSize}]}>
+            Chapters
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={[btnStyle, styles.flex]} onPress={onNextChapter}>
-          <Text style={txtStyle}>Next ▶</Text>
+        <TouchableOpacity
+          style={[styles.btnSecondary, {borderColor: colors.border, backgroundColor: colors.surface}]}
+          onPress={onNextChapter}>
+          <Text style={[styles.btnSecondaryText, {color: colors.text, fontSize: btnTextSize}]}>
+            Next ▶
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -52,26 +81,37 @@ export default function Navigation({
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 10,
-    paddingVertical: 8,
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.sm,
     borderTopWidth: StyleSheet.hairlineWidth,
-    gap: 6,
+    gap: spacing.xs,
   },
   row: {
     flexDirection: 'row',
-    gap: 6,
+    gap: spacing.xs,
   },
-  flex: {
+  btnPrimary: {
     flex: 1,
-  },
-  btn: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 10,
+    borderRadius: 12,
+    paddingVertical: 13,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  btnText: {
+  btnPrimaryText: {
+    fontFamily: 'Roboto',
+    fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.2,
+  },
+  btnSecondary: {
+    flex: 1,
+    borderRadius: 12,
+    paddingVertical: 11,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+  },
+  btnSecondaryText: {
     fontFamily: 'Roboto',
     fontWeight: '500',
   },

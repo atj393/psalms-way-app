@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
-import {createVerseStyles, useTheme} from '../theme';
+import {createVerseStyles, spacing, useTheme} from '../theme';
 import {getRandomVerse} from '../services/psalmsService';
 
 type Props = {
@@ -26,9 +26,15 @@ export default function ChapterVerseScreen({chapter, onVerseLoaded}: Props) {
 
   return (
     <View style={[verseStyles.container, styles.wrapper]}>
-      <Text style={[styles.reference, {color: colors.textSecondary, fontSize: fontSize - 4}]}>
-        Psalm {chapter}:{verse.verseNumber}
+      {/* Decorative accent line */}
+      <View style={[styles.accent, {backgroundColor: colors.primary}]} />
+
+      {/* Reference label */}
+      <Text style={[styles.reference, {color: colors.primary, fontSize: fontSize - 5}]}>
+        {`PSALM ${chapter}:${verse.verseNumber}`}
       </Text>
+
+      {/* Verse text */}
       <Text style={verseStyles.verseText}>{verse.verse}</Text>
     </View>
   );
@@ -36,13 +42,21 @@ export default function ChapterVerseScreen({chapter, onVerseLoaded}: Props) {
 
 const styles = StyleSheet.create({
   wrapper: {
-    padding: 20,
     flex: 1,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.xl,
+    justifyContent: 'center',
+  },
+  accent: {
+    width: 32,
+    height: 3,
+    borderRadius: 2,
+    marginBottom: spacing.md,
   },
   reference: {
     fontFamily: 'Roboto',
-    marginBottom: 12,
-    fontWeight: '600',
-    letterSpacing: 0.5,
+    fontWeight: '700',
+    letterSpacing: 1.5,
+    marginBottom: spacing.md,
   },
 });

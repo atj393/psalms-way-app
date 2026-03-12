@@ -1,13 +1,8 @@
 import React from 'react';
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
-import {useTheme, type ThemeMode} from '../theme';
+import {spacing, useTheme, type ThemeMode} from '../theme';
 import {useAppSettings} from '../context/AppSettingsContext';
 import Icons from '../components/Icons';
 
@@ -29,35 +24,42 @@ export default function SettingsScreen() {
   const {themeMode, setThemeMode, setFontSize} = useAppSettings();
 
   return (
-    <View style={[styles.container, {backgroundColor: colors.background}]}>
+    <SafeAreaView
+      style={[styles.container, {backgroundColor: colors.background}]}
+      edges={['top', 'bottom']}>
       {/* Header */}
       <View style={[styles.header, {borderBottomColor: colors.border}]}>
-        <Text style={[styles.headerTitle, {color: colors.text, fontSize: fontSize}]}>
-          Settings
-        </Text>
+        <View style={styles.headerLeft}>
+          <Text style={[styles.headerTitle, {color: colors.text, fontSize: fontSize + 2}]}>
+            Settings
+          </Text>
+          <Text style={[styles.headerSub, {color: colors.textSecondary, fontSize: fontSize - 5}]}>
+            Appearance
+          </Text>
+        </View>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
+          style={[styles.closeBtn, {backgroundColor: colors.surface}]}
           hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
           accessibilityLabel="Close settings">
-          <Icons name="close" size={24} color={colors.text} />
+          <Icons name="close" size={18} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
         {/* Text size */}
-        <Text style={[styles.sectionLabel, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
+        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
           TEXT SIZE
         </Text>
-        <View style={[styles.optionRow, {borderColor: colors.border, backgroundColor: colors.surface}]}>
+        <View style={[styles.segmentContainer, {backgroundColor: colors.surface}]}>
           {FONT_SIZES.map(opt => {
             const isActive = fontSize === opt.size;
             return (
               <TouchableOpacity
                 key={opt.size}
                 style={[
-                  styles.optionBtn,
-                  {borderColor: colors.border},
-                  isActive && {backgroundColor: colors.text},
+                  styles.segmentBtn,
+                  isActive && {backgroundColor: colors.primary},
                 ]}
                 onPress={() => setFontSize(opt.size)}
                 accessibilityLabel={opt.a11y}>
@@ -66,7 +68,7 @@ export default function SettingsScreen() {
                     styles.fontSizeLabel,
                     {
                       fontSize: opt.size - 4,
-                      color: isActive ? colors.background : colors.text,
+                      color: isActive ? '#FFFFFF' : colors.text,
                     },
                   ]}>
                   {opt.label}
@@ -77,19 +79,18 @@ export default function SettingsScreen() {
         </View>
 
         {/* Theme */}
-        <Text style={[styles.sectionLabel, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
+        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
           THEME
         </Text>
-        <View style={[styles.optionRow, {borderColor: colors.border, backgroundColor: colors.surface}]}>
+        <View style={[styles.segmentContainer, {backgroundColor: colors.surface}]}>
           {THEME_MODES.map(opt => {
             const isActive = themeMode === opt.value;
             return (
               <TouchableOpacity
                 key={opt.value}
                 style={[
-                  styles.optionBtn,
-                  {borderColor: colors.border},
-                  isActive && {backgroundColor: colors.text},
+                  styles.segmentBtn,
+                  isActive && {backgroundColor: colors.primary},
                 ]}
                 onPress={() => setThemeMode(opt.value)}
                 accessibilityLabel={opt.a11y}>
@@ -98,7 +99,7 @@ export default function SettingsScreen() {
                     styles.optionLabel,
                     {
                       fontSize: fontSize - 4,
-                      color: isActive ? colors.background : colors.text,
+                      color: isActive ? '#FFFFFF' : colors.text,
                     },
                   ]}>
                   {opt.label}
@@ -108,7 +109,7 @@ export default function SettingsScreen() {
           })}
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -120,37 +121,50 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.md,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerLeft: {
+    gap: 2,
   },
   headerTitle: {
     fontFamily: 'Roboto',
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  headerSub: {
+    fontFamily: 'Roboto',
+  },
+  closeBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   body: {
-    padding: 20,
-    gap: 10,
+    padding: spacing.md,
+    gap: spacing.sm,
   },
   sectionLabel: {
     fontFamily: 'Roboto',
-    fontWeight: '600',
-    letterSpacing: 1,
-    marginBottom: 4,
-    marginTop: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
   },
-  optionRow: {
+  segmentContainer: {
     flexDirection: 'row',
-    borderWidth: 1,
-    borderRadius: 10,
-    overflow: 'hidden',
+    borderRadius: 12,
+    padding: 4,
+    gap: 4,
   },
-  optionBtn: {
+  segmentBtn: {
     flex: 1,
-    paddingVertical: 14,
+    paddingVertical: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRightWidth: StyleSheet.hairlineWidth,
+    borderRadius: 9,
   },
   fontSizeLabel: {
     fontFamily: 'Roboto',

@@ -1,4 +1,4 @@
-import {useColorScheme} from 'react-native';
+import {StyleSheet, useColorScheme} from 'react-native';
 import {useAppSettings} from '../context/AppSettingsContext';
 
 export type ThemeMode = 'auto' | 'light' | 'dark';
@@ -6,7 +6,6 @@ export type ThemeMode = 'auto' | 'light' | 'dark';
 export type AppColors = {
   background: string;
   surface: string;
-  surfaceAlt: string;
   text: string;
   textSecondary: string;
   border: string;
@@ -15,24 +14,30 @@ export type AppColors = {
 
 export type SubScreen = 'verse' | 'chapter';
 
+export const spacing = {
+  xs: 4,
+  sm: 8,
+  md: 16,
+  lg: 24,
+  xl: 32,
+};
+
 const lightColors: AppColors = {
-  background: '#FFFFFF',
-  surface: '#F5F5F5',
-  surfaceAlt: '#E8E8E8',
-  text: '#1A1A1A',
-  textSecondary: '#666666',
-  border: '#D0D0D0',
-  primary: '#4A7C9B',
+  background: '#FAFAF8',
+  surface: '#F0EFE9',
+  text: '#1C1C1A',
+  textSecondary: '#7A7A72',
+  border: '#E0DFD8',
+  primary: '#5B7FA6',
 };
 
 const darkColors: AppColors = {
-  background: '#0D0D0D',
-  surface: '#1C1C1E',
-  surfaceAlt: '#2C2C2E',
-  text: '#F2F2F7',
-  textSecondary: '#AEAEB2',
-  border: '#3A3A3C',
-  primary: '#5E9DC8',
+  background: '#111110',
+  surface: '#1E1E1C',
+  text: '#EDEDE8',
+  textSecondary: '#9A9A92',
+  border: '#2E2E2C',
+  primary: '#6B9BC4',
 };
 
 export function useTheme(): {isDark: boolean; colors: AppColors; fontSize: number} {
@@ -58,32 +63,32 @@ export function createVerseStyles(colors: AppColors, fontSize: number) {
     verseRow: {
       flexDirection: 'row' as const,
       alignItems: 'flex-start' as const,
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    verseOdd: {
-      backgroundColor: colors.surface,
-    },
-    verseEven: {
-      backgroundColor: colors.surfaceAlt,
+      paddingHorizontal: spacing.md,
+      paddingVertical: 10,
+      backgroundColor: colors.background,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: colors.border,
     },
     verseHighlight: {
+      backgroundColor: colors.surface,
       borderLeftWidth: 3,
       borderLeftColor: colors.primary,
     },
     verseNumber: {
-      fontSize: fontSize - 4,
-      color: colors.textSecondary,
+      fontSize: fontSize - 5,
+      color: colors.primary,
       fontFamily: 'Roboto',
       minWidth: 28,
       paddingTop: 2,
+      textAlign: 'right' as const,
+      marginRight: spacing.sm,
     },
     verseText: {
       flex: 1,
       fontSize: fontSize,
       color: colors.text,
       fontFamily: 'Roboto',
-      lineHeight: fontSize * 1.6,
+      lineHeight: fontSize * 1.75,
     },
   };
 }
