@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {SafeAreaView, ScrollView, StyleSheet} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useTheme, type SubScreen} from '../theme';
 import Header from '../components/Header';
@@ -11,8 +11,11 @@ import type {RootStackParamList} from '../App';
 import {checkAndUpdateStreak} from '../services/streakService';
 import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
+import {scheduleDailyNotification} from '../services/notificationService';
+import {useAppSettings} from '../context/AppSettingsContext';
 
 type HomeNavProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+type HomeRoute = RouteProp<RootStackParamList, 'Home'>;
 
 function randomChapter() {
   return Math.floor(Math.random() * 150) + 1;
@@ -20,24 +23,52 @@ function randomChapter() {
 
 export default function HomeScreen() {
   const navigation = useNavigation<HomeNavProp>();
+  const route = useRoute<HomeRoute>();
   const {colors} = useTheme();
+  const {notificationEnabled, notificationHour, notificationMinute, bibleVersion} =
+    useAppSettings();
 
-  const [subScreen, setSubScreen] = useState<SubScreen>('verse');
-  const [chapter, setChapter] = useState(randomChapter);
-  const [highlightVerse, setHighlightVerse] = useState(0);
+  // If opened from a notification tap, use that chapter; else pick random
+  const initialChapter = route.params?.chapter ?? randomChapter();
+  const initialVerse = route.params?.verse ?? 0;
+  const openedFromNotification = Boolean(route.params?.chapter);
+
+  const [subScreen, setSubScreen] = useState<SubScreen>(
+    openedFromNotification ? 'verse' : 'verse',
+  );
+  const [chapter, setChapter] = useState(initialChapter);
+  const [highlightVerse, setHighlightVerse] = useState(initialVerse);
   const [streak, setStreak] = useState(0);
   const [isFav, setIsFav] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
 
-  // Update streak on first load
+  // Update streak, reschedule notification with a fresh verse
   useEffect(() => {
     checkAndUpdateStreak().then(setStreak).catch(() => {});
+    if (notificationEnabled) {
+      scheduleDailyNotification(
+        notificationHour,
+        notificationMinute,
+        bibleVersion,
+      ).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Sync favorite state when chapter changes
   useEffect(() => {
     isFavorite(chapter).then(setIsFav).catch(() => {});
   }, [chapter]);
+
+  // React to notification navigation updates (app already open)
+  useEffect(() => {
+    if (route.params?.chapter) {
+      setChapter(route.params.chapter);
+      setHighlightVerse(route.params.verse ?? 0);
+      setSubScreen('verse');
+      scrollRef.current?.scrollTo({y: 0, animated: false});
+    }
+  }, [route.params?.chapter, route.params?.verse]);
 
   const scrollTop = () => scrollRef.current?.scrollTo({y: 0, animated: false});
 

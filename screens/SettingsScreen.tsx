@@ -1,11 +1,26 @@
-import React from 'react';
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React, {useState} from 'react';
+import {
+  Alert,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
+import DateTimePicker, {type DateTimePickerEvent} from '@react-native-community/datetimepicker';
 import {spacing, useTheme, type ThemeMode} from '../theme';
 import {useAppSettings, type BibleVersion, type AppLanguage} from '../context/AppSettingsContext';
 import Icons from '../components/Icons';
 import i18n from '../i18n';
+import {
+  requestNotificationPermission,
+  scheduleDailyNotification,
+  cancelDailyNotification,
+} from '../services/notificationService';
 
 const FONT_SIZES: {label: string; size: number; a11y: string}[] = [
   {label: 'A', size: 16, a11y: 'Small text'},
@@ -38,11 +53,32 @@ const LANGUAGES: LangOption[] = [
   {label: 'മലയാളം', value: 'ml'},
 ];
 
+function formatTime(hour: number, minute: number): string {
+  const h = hour % 12 || 12;
+  const m = String(minute).padStart(2, '0');
+  const ampm = hour < 12 ? 'AM' : 'PM';
+  return `${h}:${m} ${ampm}`;
+}
+
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const {colors, fontSize} = useTheme();
-  const {themeMode, setThemeMode, setFontSize, bibleVersion, setBibleVersion, language, setLanguage} =
-    useAppSettings();
+  const {
+    themeMode,
+    setThemeMode,
+    setFontSize,
+    bibleVersion,
+    setBibleVersion,
+    language,
+    setLanguage,
+    notificationEnabled,
+    notificationHour,
+    notificationMinute,
+    setNotificationEnabled,
+    setNotificationTime,
+  } = useAppSettings();
+
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const handleSetLanguage = (lang: AppLanguage | 'auto') => {
     setLanguage(lang);
@@ -51,6 +87,43 @@ export default function SettingsScreen() {
       i18n.changeLanguage(resolved).catch(() => {});
     }
   };
+
+  const handleNotificationToggle = async (value: boolean) => {
+    if (value) {
+      const granted = await requestNotificationPermission();
+      if (!granted) {
+        Alert.alert(
+          'Permission required',
+          'Please allow notifications for Psalms Way in your device settings.',
+        );
+        return;
+      }
+      await scheduleDailyNotification(notificationHour, notificationMinute, bibleVersion);
+      setNotificationEnabled(true);
+    } else {
+      await cancelDailyNotification();
+      setNotificationEnabled(false);
+    }
+  };
+
+  const handleTimeChange = async (_event: DateTimePickerEvent, date?: Date) => {
+    // On Android the picker dismisses after selection; on iOS it stays open
+    if (Platform.OS === 'android') {
+      setShowTimePicker(false);
+    }
+    if (date) {
+      const hour = date.getHours();
+      const minute = date.getMinutes();
+      setNotificationTime(hour, minute);
+      if (notificationEnabled) {
+        await scheduleDailyNotification(hour, minute, bibleVersion).catch(() => {});
+      }
+    }
+  };
+
+  // Build a Date object from stored hour/minute for the picker
+  const pickerDate = new Date();
+  pickerDate.setHours(notificationHour, notificationMinute, 0, 0);
 
   return (
     <SafeAreaView
@@ -202,6 +275,67 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+
+        {/* Daily Verse Notification */}
+        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
+          DAILY VERSE
+        </Text>
+        <View style={[styles.notifCard, {backgroundColor: colors.surface}]}>
+          {/* Toggle row */}
+          <View style={styles.notifRow}>
+            <View style={styles.notifRowLeft}>
+              <Text style={[styles.notifLabel, {color: colors.text, fontSize: fontSize - 2}]}>
+                Daily verse reminder
+              </Text>
+              <Text
+                style={[styles.notifSub, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
+                Receive a psalm verse each day
+              </Text>
+            </View>
+            <Switch
+              value={notificationEnabled}
+              onValueChange={handleNotificationToggle}
+              trackColor={{false: colors.border, true: colors.primary}}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          {/* Time row — visible only when enabled */}
+          {notificationEnabled && (
+            <>
+              <View style={[styles.notifDivider, {backgroundColor: colors.border}]} />
+              <TouchableOpacity
+                style={styles.notifRow}
+                onPress={() => setShowTimePicker(true)}
+                accessibilityLabel="Change notification time">
+                <View style={styles.notifRowLeft}>
+                  <Text style={[styles.notifLabel, {color: colors.text, fontSize: fontSize - 2}]}>
+                    ⏰ Reminder time
+                  </Text>
+                  <Text
+                    style={[
+                      styles.notifTimeValue,
+                      {color: colors.primary, fontSize: fontSize - 3},
+                    ]}>
+                    Every day at {formatTime(notificationHour, notificationMinute)}
+                  </Text>
+                </View>
+                <Icons name="chevron-right" size={18} color={colors.textSecondary} />
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+
+        {/* Android time picker (shown inline when triggered) */}
+        {showTimePicker && (
+          <DateTimePicker
+            value={pickerDate}
+            mode="time"
+            is24Hour={false}
+            display="default"
+            onChange={handleTimeChange}
+          />
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -283,5 +417,35 @@ const styles = StyleSheet.create({
   langLabel: {
     fontFamily: 'Roboto',
     fontWeight: '500',
+  },
+  notifCard: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 4,
+    gap: spacing.md,
+  },
+  notifRowLeft: {
+    flex: 1,
+    gap: 2,
+  },
+  notifLabel: {
+    fontFamily: 'Roboto',
+    fontWeight: '500',
+  },
+  notifSub: {
+    fontFamily: 'Roboto',
+  },
+  notifTimeValue: {
+    fontFamily: 'Roboto',
+    fontWeight: '600',
+  },
+  notifDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginHorizontal: spacing.md,
   },
 });
