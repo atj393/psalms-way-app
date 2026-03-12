@@ -12,6 +12,9 @@ type AppSettings = {
   themeMode: ThemeMode;
   bibleVersion: BibleVersion;
   language: AppLanguage | 'auto';
+  notificationEnabled: boolean;
+  notificationHour: number;
+  notificationMinute: number;
 };
 
 type AppSettingsContextValue = AppSettings & {
@@ -19,6 +22,8 @@ type AppSettingsContextValue = AppSettings & {
   setThemeMode: (mode: ThemeMode) => void;
   setBibleVersion: (version: BibleVersion) => void;
   setLanguage: (lang: AppLanguage | 'auto') => void;
+  setNotificationEnabled: (enabled: boolean) => void;
+  setNotificationTime: (hour: number, minute: number) => void;
 };
 
 const defaults: AppSettings = {
@@ -26,6 +31,9 @@ const defaults: AppSettings = {
   themeMode: 'auto',
   bibleVersion: 'modern',
   language: 'auto',
+  notificationEnabled: false,
+  notificationHour: 8,
+  notificationMinute: 0,
 };
 
 const AppSettingsContext = createContext<AppSettingsContextValue>({
@@ -34,6 +42,8 @@ const AppSettingsContext = createContext<AppSettingsContextValue>({
   setThemeMode: () => {},
   setBibleVersion: () => {},
   setLanguage: () => {},
+  setNotificationEnabled: () => {},
+  setNotificationTime: () => {},
 });
 
 export function AppSettingsProvider({children}: {children: React.ReactNode}) {
@@ -58,10 +68,22 @@ export function AppSettingsProvider({children}: {children: React.ReactNode}) {
   const setThemeMode = (themeMode: ThemeMode) => persist({...settings, themeMode});
   const setBibleVersion = (bibleVersion: BibleVersion) => persist({...settings, bibleVersion});
   const setLanguage = (language: AppLanguage | 'auto') => persist({...settings, language});
+  const setNotificationEnabled = (notificationEnabled: boolean) =>
+    persist({...settings, notificationEnabled});
+  const setNotificationTime = (notificationHour: number, notificationMinute: number) =>
+    persist({...settings, notificationHour, notificationMinute});
 
   return (
     <AppSettingsContext.Provider
-      value={{...settings, setFontSize, setThemeMode, setBibleVersion, setLanguage}}>
+      value={{
+        ...settings,
+        setFontSize,
+        setThemeMode,
+        setBibleVersion,
+        setLanguage,
+        setNotificationEnabled,
+        setNotificationTime,
+      }}>
       {children}
     </AppSettingsContext.Provider>
   );
