@@ -3,8 +3,9 @@ import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {spacing, useTheme, type ThemeMode} from '../theme';
-import {useAppSettings} from '../context/AppSettingsContext';
+import {useAppSettings, type BibleVersion, type AppLanguage} from '../context/AppSettingsContext';
 import Icons from '../components/Icons';
+import i18n from '../i18n';
 
 const FONT_SIZES: {label: string; size: number; a11y: string}[] = [
   {label: 'A', size: 16, a11y: 'Small text'},
@@ -18,10 +19,38 @@ const THEME_MODES: {label: string; value: ThemeMode; a11y: string}[] = [
   {label: 'Dark', value: 'dark', a11y: 'Dark theme'},
 ];
 
+const BIBLE_VERSIONS: {label: string; value: BibleVersion; a11y: string}[] = [
+  {label: 'Modern', value: 'modern', a11y: 'Modern English'},
+  {label: 'KJV', value: 'kjv', a11y: 'King James Version'},
+];
+
+type LangOption = {label: string; value: AppLanguage | 'auto'};
+const LANGUAGES: LangOption[] = [
+  {label: 'Auto', value: 'auto'},
+  {label: 'English', value: 'en'},
+  {label: 'Deutsch', value: 'de'},
+  {label: 'Français', value: 'fr'},
+  {label: 'Español', value: 'es'},
+  {label: 'हिन्दी', value: 'hi'},
+  {label: 'தமிழ்', value: 'ta'},
+  {label: 'తెలుగు', value: 'te'},
+  {label: 'ಕನ್ನಡ', value: 'kn'},
+  {label: 'മലയാളം', value: 'ml'},
+];
+
 export default function SettingsScreen() {
   const navigation = useNavigation();
   const {colors, fontSize} = useTheme();
-  const {themeMode, setThemeMode, setFontSize} = useAppSettings();
+  const {themeMode, setThemeMode, setFontSize, bibleVersion, setBibleVersion, language, setLanguage} =
+    useAppSettings();
+
+  const handleSetLanguage = (lang: AppLanguage | 'auto') => {
+    setLanguage(lang);
+    const resolved = lang === 'auto' ? undefined : lang;
+    if (resolved) {
+      i18n.changeLanguage(resolved).catch(() => {});
+    }
+  };
 
   return (
     <SafeAreaView
@@ -108,6 +137,71 @@ export default function SettingsScreen() {
             );
           })}
         </View>
+
+        {/* Bible Version */}
+        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
+          BIBLE VERSION
+        </Text>
+        <View style={[styles.segmentContainer, {backgroundColor: colors.surface}]}>
+          {BIBLE_VERSIONS.map(opt => {
+            const isActive = bibleVersion === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[
+                  styles.segmentBtn,
+                  isActive && {backgroundColor: colors.primary},
+                ]}
+                onPress={() => setBibleVersion(opt.value)}
+                accessibilityLabel={opt.a11y}>
+                <Text
+                  style={[
+                    styles.optionLabel,
+                    {
+                      fontSize: fontSize - 4,
+                      color: isActive ? '#FFFFFF' : colors.text,
+                    },
+                  ]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
+        {/* Language */}
+        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
+          LANGUAGE
+        </Text>
+        <View style={styles.languageGrid}>
+          {LANGUAGES.map(opt => {
+            const isActive = language === opt.value;
+            return (
+              <TouchableOpacity
+                key={opt.value}
+                style={[
+                  styles.langBtn,
+                  {
+                    backgroundColor: isActive ? colors.primary : colors.surface,
+                    borderColor: isActive ? colors.primary : colors.border,
+                  },
+                ]}
+                onPress={() => handleSetLanguage(opt.value)}
+                accessibilityLabel={opt.label}>
+                <Text
+                  style={[
+                    styles.langLabel,
+                    {
+                      fontSize: fontSize - 5,
+                      color: isActive ? '#FFFFFF' : colors.text,
+                    },
+                  ]}>
+                  {opt.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -145,6 +239,7 @@ const styles = StyleSheet.create({
   body: {
     padding: spacing.md,
     gap: spacing.sm,
+    paddingBottom: spacing.xl,
   },
   sectionLabel: {
     fontFamily: 'Roboto',
@@ -171,6 +266,21 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   optionLabel: {
+    fontFamily: 'Roboto',
+    fontWeight: '500',
+  },
+  languageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  langBtn: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  langLabel: {
     fontFamily: 'Roboto',
     fontWeight: '500',
   },
