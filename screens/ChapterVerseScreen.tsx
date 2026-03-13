@@ -116,7 +116,7 @@ export default function ChapterVerseScreen({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    padding: spacing.md,
+    padding: spacing.sm,
     justifyContent: 'center',
   },
   card: {
