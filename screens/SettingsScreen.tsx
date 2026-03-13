@@ -12,7 +12,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import DateTimePicker, {type DateTimePickerEvent} from '@react-native-community/datetimepicker';
-import {spacing, useTheme, type ThemeMode} from '../theme';
+import {shape, spacing, useTheme, type ThemeMode} from '../theme';
 import {useAppSettings, type BibleVersion, type AppLanguage} from '../context/AppSettingsContext';
 import Icons from '../components/Icons';
 import i18n from '../i18n';
@@ -21,6 +21,7 @@ import {
   scheduleDailyNotification,
   cancelDailyNotification,
 } from '../services/notificationService';
+import {M3Card, M3Divider, M3IconButton, M3SegmentedButton, M3Chip} from '../components/M3';
 
 const FONT_SIZES: {label: string; size: number; a11y: string}[] = [
   {label: 'A', size: 16, a11y: 'Small text'},
@@ -62,10 +63,11 @@ function formatTime(hour: number, minute: number): string {
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
-  const {colors, fontSize} = useTheme();
+  const {colors, type, isDark} = useTheme();
   const {
     themeMode,
     setThemeMode,
+    fontSize,
     setFontSize,
     bibleVersion,
     setBibleVersion,
@@ -107,7 +109,6 @@ export default function SettingsScreen() {
   };
 
   const handleTimeChange = async (_event: DateTimePickerEvent, date?: Date) => {
-    // On Android the picker dismisses after selection; on iOS it stays open
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
@@ -121,212 +122,137 @@ export default function SettingsScreen() {
     }
   };
 
-  // Build a Date object from stored hour/minute for the picker
   const pickerDate = new Date();
   pickerDate.setHours(notificationHour, notificationMinute, 0, 0);
+
+  const SectionLabel = ({label}: {label: string}) => (
+    <Text style={[type.labelLarge, styles.sectionLabel, {color: colors.primary}]}>
+      {label}
+    </Text>
+  );
 
   return (
     <SafeAreaView
       style={[styles.container, {backgroundColor: colors.background}]}
       edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={[styles.header, {borderBottomColor: colors.border}]}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.headerTitle, {color: colors.text, fontSize: fontSize + 2}]}>
-            Settings
-          </Text>
-          <Text style={[styles.headerSub, {color: colors.textSecondary, fontSize: fontSize - 5}]}>
-            Appearance
-          </Text>
+
+      {/* MD3 Top App Bar */}
+      <View
+        style={[
+          styles.appBar,
+          {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
+        ]}>
+        <View style={styles.titleGroup}>
+          <Text style={[type.titleLarge, {color: colors.onSurface}]}>Settings</Text>
+          <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>Appearance</Text>
         </View>
-        <TouchableOpacity
+        <M3IconButton
           onPress={() => navigation.goBack()}
-          style={[styles.closeBtn, {backgroundColor: colors.surface}]}
-          hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
           accessibilityLabel="Close settings">
-          <Icons name="close" size={18} color={colors.textSecondary} />
-        </TouchableOpacity>
+          <Icons name="close" size={22} color={colors.onSurfaceVariant} />
+        </M3IconButton>
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        {/* Text size */}
-        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
-          TEXT SIZE
-        </Text>
-        <View style={[styles.segmentContainer, {backgroundColor: colors.surface}]}>
-          {FONT_SIZES.map(opt => {
-            const isActive = fontSize === opt.size;
-            return (
-              <TouchableOpacity
-                key={opt.size}
-                style={[
-                  styles.segmentBtn,
-                  isActive && {backgroundColor: colors.primary},
-                ]}
-                onPress={() => setFontSize(opt.size)}
-                accessibilityLabel={opt.a11y}>
-                <Text
-                  style={[
-                    styles.fontSizeLabel,
-                    {
-                      fontSize: opt.size - 4,
-                      color: isActive ? '#FFFFFF' : colors.text,
-                    },
-                  ]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+
+        {/* TEXT SIZE */}
+        <SectionLabel label="TEXT SIZE" />
+        <M3Card variant="filled" style={styles.sectionCard}>
+          <M3SegmentedButton
+            options={FONT_SIZES.map(opt => ({
+              label: opt.label,
+              value: String(opt.size),
+              a11y: opt.a11y,
+            }))}
+            value={String(fontSize)}
+            onChange={v => setFontSize(Number(v))}
+          />
+        </M3Card>
+
+        {/* THEME */}
+        <SectionLabel label="THEME" />
+        <M3Card variant="filled" style={styles.sectionCard}>
+          <M3SegmentedButton
+            options={THEME_MODES.map(opt => ({
+              label: opt.label,
+              value: opt.value,
+              a11y: opt.a11y,
+            }))}
+            value={themeMode}
+            onChange={v => setThemeMode(v as ThemeMode)}
+          />
+        </M3Card>
+
+        {/* BIBLE VERSION */}
+        <SectionLabel label="BIBLE VERSION" />
+        <M3Card variant="filled" style={styles.sectionCard}>
+          <M3SegmentedButton
+            options={BIBLE_VERSIONS.map(opt => ({
+              label: opt.label,
+              value: opt.value,
+              a11y: opt.a11y,
+            }))}
+            value={bibleVersion}
+            onChange={v => setBibleVersion(v as BibleVersion)}
+          />
+        </M3Card>
+
+        {/* LANGUAGE */}
+        <SectionLabel label="LANGUAGE" />
+        <View style={styles.chipRow}>
+          {LANGUAGES.map(opt => (
+            <M3Chip
+              key={opt.value}
+              label={opt.label}
+              type="filter"
+              selected={language === opt.value}
+              onPress={() => handleSetLanguage(opt.value)}
+            />
+          ))}
         </View>
 
-        {/* Theme */}
-        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
-          THEME
-        </Text>
-        <View style={[styles.segmentContainer, {backgroundColor: colors.surface}]}>
-          {THEME_MODES.map(opt => {
-            const isActive = themeMode === opt.value;
-            return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[
-                  styles.segmentBtn,
-                  isActive && {backgroundColor: colors.primary},
-                ]}
-                onPress={() => setThemeMode(opt.value)}
-                accessibilityLabel={opt.a11y}>
-                <Text
-                  style={[
-                    styles.optionLabel,
-                    {
-                      fontSize: fontSize - 4,
-                      color: isActive ? '#FFFFFF' : colors.text,
-                    },
-                  ]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Bible Version */}
-        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
-          BIBLE VERSION
-        </Text>
-        <View style={[styles.segmentContainer, {backgroundColor: colors.surface}]}>
-          {BIBLE_VERSIONS.map(opt => {
-            const isActive = bibleVersion === opt.value;
-            return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[
-                  styles.segmentBtn,
-                  isActive && {backgroundColor: colors.primary},
-                ]}
-                onPress={() => setBibleVersion(opt.value)}
-                accessibilityLabel={opt.a11y}>
-                <Text
-                  style={[
-                    styles.optionLabel,
-                    {
-                      fontSize: fontSize - 4,
-                      color: isActive ? '#FFFFFF' : colors.text,
-                    },
-                  ]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Language */}
-        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
-          LANGUAGE
-        </Text>
-        <View style={styles.languageGrid}>
-          {LANGUAGES.map(opt => {
-            const isActive = language === opt.value;
-            return (
-              <TouchableOpacity
-                key={opt.value}
-                style={[
-                  styles.langBtn,
-                  {
-                    backgroundColor: isActive ? colors.primary : colors.surface,
-                    borderColor: isActive ? colors.primary : colors.border,
-                  },
-                ]}
-                onPress={() => handleSetLanguage(opt.value)}
-                accessibilityLabel={opt.label}>
-                <Text
-                  style={[
-                    styles.langLabel,
-                    {
-                      fontSize: fontSize - 5,
-                      color: isActive ? '#FFFFFF' : colors.text,
-                    },
-                  ]}>
-                  {opt.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        {/* Daily Verse Notification */}
-        <Text style={[styles.sectionLabel, {color: colors.primary, fontSize: fontSize - 6}]}>
-          DAILY VERSE
-        </Text>
-        <View style={[styles.notifCard, {backgroundColor: colors.surface}]}>
+        {/* DAILY VERSE */}
+        <SectionLabel label="DAILY VERSE" />
+        <M3Card variant="filled" style={styles.notifCard}>
           {/* Toggle row */}
           <View style={styles.notifRow}>
             <View style={styles.notifRowLeft}>
-              <Text style={[styles.notifLabel, {color: colors.text, fontSize: fontSize - 2}]}>
+              <Text style={[type.titleSmall, {color: colors.onSurface}]}>
                 Daily verse reminder
               </Text>
-              <Text
-                style={[styles.notifSub, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
+              <Text style={[type.bodySmall, {color: colors.onSurfaceVariant}]}>
                 Receive a psalm verse each day
               </Text>
             </View>
             <Switch
               value={notificationEnabled}
               onValueChange={handleNotificationToggle}
-              trackColor={{false: colors.border, true: colors.primary}}
+              trackColor={{false: colors.outlineVariant, true: colors.primary}}
               thumbColor="#FFFFFF"
             />
           </View>
 
-          {/* Time row — visible only when enabled */}
           {notificationEnabled && (
             <>
-              <View style={[styles.notifDivider, {backgroundColor: colors.border}]} />
+              <M3Divider style={styles.notifDivider} />
               <TouchableOpacity
                 style={styles.notifRow}
                 onPress={() => setShowTimePicker(true)}
                 accessibilityLabel="Change notification time">
                 <View style={styles.notifRowLeft}>
-                  <Text style={[styles.notifLabel, {color: colors.text, fontSize: fontSize - 2}]}>
+                  <Text style={[type.titleSmall, {color: colors.onSurface}]}>
                     ⏰ Reminder time
                   </Text>
-                  <Text
-                    style={[
-                      styles.notifTimeValue,
-                      {color: colors.primary, fontSize: fontSize - 3},
-                    ]}>
+                  <Text style={[type.bodyMedium, {color: colors.primary}]}>
                     Every day at {formatTime(notificationHour, notificationMinute)}
                   </Text>
                 </View>
-                <Icons name="chevron-right" size={18} color={colors.textSecondary} />
+                <Icons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
               </TouchableOpacity>
             </>
           )}
-        </View>
+        </M3Card>
 
-        {/* Android time picker (shown inline when triggered) */}
         {showTimePicker && (
           <DateTimePicker
             value={pickerDate}
@@ -342,33 +268,19 @@ export default function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
+  container: {flex: 1},
+  appBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
+    minHeight: 64,
   },
-  headerLeft: {
+  titleGroup: {
+    flex: 1,
     gap: 2,
-  },
-  headerTitle: {
-    fontFamily: 'Roboto',
-    fontWeight: '700',
-  },
-  headerSub: {
-    fontFamily: 'Roboto',
-  },
-  closeBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    alignItems: 'center',
-    justifyContent: 'center',
+    paddingHorizontal: spacing.xs,
   },
   body: {
     padding: spacing.md,
@@ -376,50 +288,19 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xl,
   },
   sectionLabel: {
-    fontFamily: 'Roboto',
-    fontWeight: '700',
     letterSpacing: 1.2,
     marginTop: spacing.md,
     marginBottom: spacing.xs,
   },
-  segmentContainer: {
-    flexDirection: 'row',
-    borderRadius: 12,
-    padding: 4,
-    gap: 4,
+  sectionCard: {
+    padding: spacing.sm,
   },
-  segmentBtn: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRadius: 9,
-  },
-  fontSizeLabel: {
-    fontFamily: 'Roboto',
-    fontWeight: '700',
-  },
-  optionLabel: {
-    fontFamily: 'Roboto',
-    fontWeight: '500',
-  },
-  languageGrid: {
+  chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
   },
-  langBtn: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-  },
-  langLabel: {
-    fontFamily: 'Roboto',
-    fontWeight: '500',
-  },
   notifCard: {
-    borderRadius: 12,
     overflow: 'hidden',
   },
   notifRow: {
@@ -433,19 +314,7 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  notifLabel: {
-    fontFamily: 'Roboto',
-    fontWeight: '500',
-  },
-  notifSub: {
-    fontFamily: 'Roboto',
-  },
-  notifTimeValue: {
-    fontFamily: 'Roboto',
-    fontWeight: '600',
-  },
   notifDivider: {
-    height: StyleSheet.hairlineWidth,
     marginHorizontal: spacing.md,
   },
 });

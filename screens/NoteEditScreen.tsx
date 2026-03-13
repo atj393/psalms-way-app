@@ -6,17 +6,17 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
-import {spacing, useTheme} from '../theme';
+import {shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import {getNoteForVerse, saveNote, deleteNote} from '../services/notesService';
 import {getChapter} from '../services/psalmsService';
 import {useAppSettings} from '../context/AppSettingsContext';
 import type {RootStackParamList} from '../App';
+import {M3Card, M3FilledButton, M3IconButton} from '../components/M3';
 
 type NoteEditRoute = RouteProp<RootStackParamList, 'NoteEdit'>;
 
@@ -24,7 +24,7 @@ export default function NoteEditScreen() {
   const navigation = useNavigation();
   const route = useRoute<NoteEditRoute>();
   const {chapter, verse} = route.params;
-  const {colors, fontSize} = useTheme();
+  const {colors, type, fontSize, isDark} = useTheme();
   const {bibleVersion} = useAppSettings();
 
   const [text, setText] = useState('');
@@ -71,63 +71,69 @@ export default function NoteEditScreen() {
     <SafeAreaView
       style={[styles.container, {backgroundColor: colors.background}]}
       edges={['top', 'bottom']}>
-      {/* Header */}
-      <View style={[styles.header, {borderBottomColor: colors.border}]}>
-        <View style={styles.headerLeft}>
-          <Text style={[styles.headerTitle, {color: colors.text, fontSize: fontSize + 2}]}>
-            Note
-          </Text>
-          <Text style={[styles.headerSub, {color: colors.textSecondary, fontSize: fontSize - 5}]}>
+
+      {/* MD3 Top App Bar */}
+      <View
+        style={[
+          styles.appBar,
+          {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
+        ]}>
+        <View style={styles.titleGroup}>
+          <Text style={[type.titleLarge, {color: colors.onSurface}]}>Note</Text>
+          <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>
             Psalm {chapter}:{verse}
           </Text>
         </View>
-        <View style={styles.headerActions}>
+        <View style={styles.appBarActions}>
           {existingNote && (
-            <TouchableOpacity
+            <M3IconButton
               onPress={handleDelete}
-              style={[styles.iconBtn, {backgroundColor: colors.surface}]}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
               accessibilityLabel="Delete note">
-              <Icons name="trash" size={18} color={colors.textSecondary} />
-            </TouchableOpacity>
+              <Icons name="trash" size={22} color={colors.onSurfaceVariant} />
+            </M3IconButton>
           )}
-          <TouchableOpacity
+          <M3IconButton
             onPress={() => navigation.goBack()}
-            style={[styles.iconBtn, {backgroundColor: colors.surface}]}
-            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
             accessibilityLabel="Close">
-            <Icons name="close" size={18} color={colors.textSecondary} />
-          </TouchableOpacity>
+            <Icons name="close" size={22} color={colors.onSurfaceVariant} />
+          </M3IconButton>
         </View>
       </View>
 
       <KeyboardAvoidingView
         style={styles.body}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}>
-        {/* Verse reference card */}
-        <View style={[styles.verseCard, {backgroundColor: colors.surface}]}>
-          <Text style={[styles.verseRef, {color: colors.primary, fontSize: fontSize - 5}]}>
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+
+        {/* Verse context card */}
+        <M3Card variant="filled" style={styles.verseCard}>
+          <Text
+            style={[
+              type.labelLarge,
+              {color: colors.primary, letterSpacing: 1.5},
+            ]}>
             PSALM {chapter}:{verse}
           </Text>
-          <Text style={[styles.verseText, {color: colors.text, fontSize: fontSize - 2}]} numberOfLines={3}>
+          <Text
+            style={[type.bodyMedium, {color: colors.onSurface, marginTop: spacing.xs}]}
+            numberOfLines={3}>
             {verseText}
           </Text>
-        </View>
+        </M3Card>
 
-        {/* Note input */}
+        {/* Note input — MD3 filled text field style */}
         <TextInput
           style={[
             styles.noteInput,
             {
-              backgroundColor: colors.surface,
-              color: colors.text,
+              backgroundColor: colors.surfaceVariant,
+              color: colors.onSurface,
               fontSize,
-              borderColor: colors.border,
+              lineHeight: fontSize * 1.6,
+              borderBottomColor: colors.primary,
             },
           ]}
           placeholder="Write a note for this verse…"
-          placeholderTextColor={colors.textSecondary}
+          placeholderTextColor={colors.onSurfaceVariant}
           value={text}
           onChangeText={setText}
           multiline
@@ -136,12 +142,11 @@ export default function NoteEditScreen() {
         />
 
         {/* Save button */}
-        <TouchableOpacity
-          style={[styles.saveBtn, {backgroundColor: colors.primary}]}
+        <M3FilledButton
+          label="Save"
           onPress={handleSave}
-          accessibilityLabel="Save note">
-          <Text style={[styles.saveBtnText, {fontSize}]}>Save</Text>
-        </TouchableOpacity>
+          style={styles.saveBtn}
+        />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -149,24 +154,22 @@ export default function NoteEditScreen() {
 
 const styles = StyleSheet.create({
   container: {flex: 1},
-  header: {
+  appBar: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingVertical: spacing.sm,
+    paddingLeft: spacing.md,
+    paddingRight: spacing.xs,
+    minHeight: 64,
   },
-  headerLeft: {gap: 2},
-  headerTitle: {fontFamily: 'Roboto', fontWeight: '700'},
-  headerSub: {fontFamily: 'Roboto'},
-  headerActions: {flexDirection: 'row', gap: spacing.sm},
-  iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+  titleGroup: {
+    flex: 1,
+    gap: 2,
+    paddingHorizontal: spacing.xs,
+  },
+  appBarActions: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
   },
   body: {
     flex: 1,
@@ -174,29 +177,18 @@ const styles = StyleSheet.create({
     gap: spacing.md,
   },
   verseCard: {
-    borderRadius: 12,
     padding: spacing.md,
-    gap: spacing.xs,
   },
-  verseRef: {fontFamily: 'Roboto', fontWeight: '700', letterSpacing: 1.5},
-  verseText: {fontFamily: 'Roboto', lineHeight: 22},
   noteInput: {
     flex: 1,
-    borderRadius: 12,
+    borderTopLeftRadius: shape.extraSmall,
+    borderTopRightRadius: shape.extraSmall,
+    borderBottomWidth: 2,
     padding: spacing.md,
     fontFamily: 'Roboto',
-    lineHeight: 24,
-    borderWidth: StyleSheet.hairlineWidth,
     minHeight: 120,
   },
   saveBtn: {
-    borderRadius: 12,
-    paddingVertical: spacing.sm + 4,
-    alignItems: 'center',
-  },
-  saveBtnText: {
-    fontFamily: 'Roboto',
-    fontWeight: '700',
-    color: '#FFFFFF',
+    alignSelf: 'stretch',
   },
 });
