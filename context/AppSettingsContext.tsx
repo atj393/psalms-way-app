@@ -1,6 +1,7 @@
 import React, {createContext, useContext, useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {ThemeMode} from '../theme';
+import i18n, {getDeviceLanguage} from '../i18n';
 
 const STORAGE_KEY = 'appSettings';
 
@@ -55,6 +56,12 @@ export function AppSettingsProvider({children}: {children: React.ReactNode}) {
       try {
         const parsed = JSON.parse(raw) as Partial<AppSettings>;
         setSettings(prev => ({...prev, ...parsed}));
+        // Apply saved language to i18n so it persists across app restarts
+        const savedLang = parsed.language;
+        const resolved = savedLang === 'auto' || !savedLang
+          ? getDeviceLanguage()
+          : savedLang;
+        i18n.changeLanguage(resolved).catch(() => {});
       } catch {}
     });
   }, []);

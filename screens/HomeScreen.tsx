@@ -139,6 +139,10 @@ export default function HomeScreen() {
     navigation.navigate('Search');
   }, [navigation]);
 
+  const openStats = useCallback(() => {
+    navigation.navigate('Stats');
+  }, [navigation]);
+
   const openLibrary = useCallback(() => {
     navigation.navigate('Library', {
       onSelect: (selected: number) => {
@@ -177,12 +181,12 @@ export default function HomeScreen() {
         chapter={chapter}
         highlightVerse={highlightVerse}
         subScreen={subScreen}
-        streak={streak}
         isFavorite={isFav}
         onSettingsPress={openSettings}
         onSearchPress={openSearch}
         onLibraryPress={openLibrary}
         onFavoritePress={onFavoritePress}
+        onStatsPress={openStats}
       />
 
       {subScreen === 'chapter' ? (
@@ -195,6 +199,7 @@ export default function HomeScreen() {
         <ScrollView ref={scrollRef} style={styles.scrollView}>
           <ChapterVerseScreen
             chapter={chapter}
+            specificVerse={highlightVerse > 0 ? highlightVerse : undefined}
             onVerseLoaded={onVerseLoaded}
             onCompare={openCompare}
             onNoteEdit={openNoteEdit}

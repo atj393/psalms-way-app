@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {FlatList, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import {spacing, useTheme} from '../theme';
 import type {RootStackParamList} from '../App';
 import Icons from '../components/Icons';
@@ -13,12 +14,8 @@ import {M3Divider, M3IconButton, M3Pressable, M3TabBar} from '../components/M3';
 
 type Tab = 'bookmarks' | 'favorites' | 'history' | 'notes';
 
-const TABS: {id: Tab; label: string}[] = [
-  {id: 'bookmarks', label: 'Bookmarks'},
-  {id: 'favorites', label: 'Favorites'},
-  {id: 'history', label: 'History'},
-  {id: 'notes', label: 'Notes'},
-];
+// Tab labels resolved inside component via useTranslation
+const TAB_IDS: Tab[] = ['bookmarks', 'favorites', 'history', 'notes'];
 
 type LibraryRoute = RouteProp<RootStackParamList, 'Library'>;
 
@@ -26,7 +23,9 @@ export default function LibraryScreen() {
   const navigation = useNavigation();
   const route = useRoute<LibraryRoute>();
   const {onSelect} = route.params;
+  const {t} = useTranslation();
   const {colors, type, isDark} = useTheme();
+  const TABS = TAB_IDS.map(id => ({id, label: t(id)}));
 
   const [activeTab, setActiveTab] = useState<Tab>('bookmarks');
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
@@ -59,7 +58,7 @@ export default function LibraryScreen() {
     switch (activeTab) {
       case 'bookmarks':
         if (bookmarks.length === 0) {
-          return renderEmpty('No bookmarks yet');
+          return renderEmpty(t('noBookmarks'));
         }
         return (
           <FlatList
@@ -82,7 +81,7 @@ export default function LibraryScreen() {
 
       case 'favorites':
         if (favorites.length === 0) {
-          return renderEmpty('No favorites yet');
+          return renderEmpty(t('noFavorites'));
         }
         return (
           <FlatList
@@ -105,7 +104,7 @@ export default function LibraryScreen() {
 
       case 'history':
         if (history.length === 0) {
-          return renderEmpty('No history yet');
+          return renderEmpty(t('noHistory'));
         }
         return (
           <FlatList
@@ -133,7 +132,7 @@ export default function LibraryScreen() {
 
       case 'notes':
         if (notes.length === 0) {
-          return renderEmpty('No notes yet');
+          return renderEmpty(t('noNotes'));
         }
         return (
           <FlatList
@@ -184,7 +183,7 @@ export default function LibraryScreen() {
             styles.appBarTitle,
             {color: colors.onSurface},
           ]}>
-          Library
+          {t('library')}
         </Text>
         <M3IconButton
           onPress={() => navigation.goBack()}

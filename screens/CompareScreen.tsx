@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import {spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import {getChapter} from '../services/psalmsService';
@@ -14,6 +15,7 @@ export default function CompareScreen() {
   const navigation = useNavigation();
   const route = useRoute<CompareRoute>();
   const {chapter, verse} = route.params;
+  const {t} = useTranslation();
   const {colors, type, fontSize, isDark} = useTheme();
 
   const modernVerse = useMemo(() => {
@@ -61,7 +63,7 @@ export default function CompareScreen() {
           {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
         ]}>
         <View style={styles.titleGroup}>
-          <Text style={[type.titleLarge, {color: colors.onSurface}]}>Compare</Text>
+          <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('compare')}</Text>
           <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>
             Psalm {chapter}:{verse}
           </Text>

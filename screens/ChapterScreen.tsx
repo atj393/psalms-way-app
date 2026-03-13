@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     FlatList,
     Modal,
@@ -42,6 +43,7 @@ type ActionSheet = { verse: number; text: string } | null;
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit }: Props) {
+    const { t } = useTranslation();
     const { colors, type, fontSize, isDark } = useTheme();
     const { bibleVersion } = useAppSettings();
 
@@ -269,8 +271,8 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                         />
                         <Text style={[type.bodyLarge, { color: colors.onSurface }]}>
                             {actionSheet && verseStates[actionSheet.verse]?.bookmarked
-                                ? 'Remove Bookmark'
-                                : 'Bookmark'}
+                                ? t('removeBookmark', 'Remove Bookmark')
+                                : t('bookmark')}
                         </Text>
                     </M3Pressable>
 
@@ -285,7 +287,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                             setHighlightSheet(v);
                         }}>
                         <Icons name="highlight" size={22} color={colors.onSurfaceVariant} />
-                        <Text style={[type.bodyLarge, { color: colors.onSurface }]}>Highlight</Text>
+                        <Text style={[type.bodyLarge, { color: colors.onSurface }]}>{t('highlight')}</Text>
                     </M3Pressable>
 
                     <M3Pressable
@@ -299,7 +301,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                             onOpenNoteEdit(v);
                         }}>
                         <Icons name="note-outline" size={22} color={colors.onSurfaceVariant} />
-                        <Text style={[type.bodyLarge, { color: colors.onSurface }]}>Note</Text>
+                        <Text style={[type.bodyLarge, { color: colors.onSurface }]}>{t('note')}</Text>
                     </M3Pressable>
 
                     <M3Pressable
@@ -315,13 +317,13 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                             });
                         }}>
                         <Icons name="share" size={22} color={colors.onSurfaceVariant} />
-                        <Text style={[type.bodyLarge, { color: colors.onSurface }]}>Share</Text>
+                        <Text style={[type.bodyLarge, { color: colors.onSurface }]}>{t('share')}</Text>
                     </M3Pressable>
 
                     <M3Divider style={styles.sheetDivider} />
 
                     <View style={styles.sheetFooter}>
-                        <M3TextButton label="Cancel" onPress={() => setActionSheet(null)} />
+                        <M3TextButton label={t('close')} onPress={() => setActionSheet(null)} />
                     </View>
                 </View>
             </Modal>
@@ -397,12 +399,12 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                                 highlightSheet !== null && handleHighlightRemove(highlightSheet)
                             }>
                             <Icons name="close" size={22} color={colors.error} />
-                            <Text style={[type.bodyLarge, { color: colors.error }]}>Remove highlight</Text>
+                            <Text style={[type.bodyLarge, { color: colors.error }]}>{t('removeHighlight', 'Remove highlight')}</Text>
                         </M3Pressable>
                     )}
 
                     <View style={styles.sheetFooter}>
-                        <M3TextButton label="Cancel" onPress={() => setHighlightSheet(null)} />
+                        <M3TextButton label={t('close')} onPress={() => setHighlightSheet(null)} />
                     </View>
                 </View>
             </Modal>

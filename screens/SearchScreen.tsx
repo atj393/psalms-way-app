@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import {shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import {getChapter} from '../services/psalmsService';
@@ -30,6 +31,7 @@ function buildIndex(version: 'modern' | 'kjv'): Result[] {
 
 export default function SearchScreen() {
   const navigation = useNavigation();
+  const {t} = useTranslation();
   const {colors, type} = useTheme();
   const {bibleVersion} = useAppSettings();
 
@@ -80,7 +82,7 @@ export default function SearchScreen() {
               styles.searchInput,
               {color: colors.onSurface},
             ]}
-            placeholder="Search psalms…"
+            placeholder={t('searchPlaceholder')}
             placeholderTextColor={colors.onSurfaceVariant}
             value={query}
             onChangeText={setQuery}
@@ -101,7 +103,7 @@ export default function SearchScreen() {
           onPress={() => navigation.goBack()}
           style={styles.cancelBtn}
           hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-          <Text style={[type.labelLarge, {color: colors.primary}]}>Cancel</Text>
+          <Text style={[type.labelLarge, {color: colors.primary}]}>{t('close')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -109,7 +111,7 @@ export default function SearchScreen() {
       {query.length >= 2 && (
         <View style={styles.countRow}>
           <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>
-            {results.length} result{results.length !== 1 ? 's' : ''}
+            {t('searchResults', {count: results.length})}
           </Text>
         </View>
       )}
@@ -156,7 +158,7 @@ export default function SearchScreen() {
           query.length >= 2 ? (
             <View style={styles.emptyContainer}>
               <Text style={[type.bodyMedium, {color: colors.onSurfaceVariant}]}>
-                No results found
+                {t('noResults')}
               </Text>
             </View>
           ) : null

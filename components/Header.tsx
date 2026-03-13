@@ -8,24 +8,24 @@ type Props = {
   chapter: number;
   highlightVerse: number;
   subScreen: SubScreen;
-  streak: number;
   isFavorite: boolean;
   onSettingsPress: () => void;
   onSearchPress: () => void;
   onLibraryPress: () => void;
   onFavoritePress: () => void;
+  onStatsPress: () => void;
 };
 
 export default function Header({
   chapter,
   highlightVerse,
   subScreen,
-  streak,
   isFavorite,
   onSettingsPress,
   onSearchPress,
   onLibraryPress,
   onFavoritePress,
+  onStatsPress,
 }: Props) {
   const {colors, type, isDark} = useTheme();
 
@@ -52,6 +52,9 @@ export default function Header({
           <M3IconButton onPress={onSearchPress} accessibilityLabel="Search psalms">
             <Icons name="search" size={22} color={iconColor} />
           </M3IconButton>
+          <M3IconButton onPress={onStatsPress} accessibilityLabel="Reading stats">
+            <Icons name="insights" size={22} color={iconColor} />
+          </M3IconButton>
           <M3IconButton onPress={onLibraryPress} accessibilityLabel="Open library">
             <Icons name="library" size={22} color={iconColor} />
           </M3IconButton>
@@ -61,7 +64,7 @@ export default function Header({
         </View>
       </View>
 
-      {/* Row 2: Psalm reference (larger) + streak badge + favorite */}
+      {/* Row 2: Psalm reference (larger) + favorite */}
       <View style={styles.row}>
         <Text
           style={[type.titleLarge, styles.psalmsRef, {color: colors.onSurface}]}
@@ -69,13 +72,6 @@ export default function Header({
           {psalmsRef}
         </Text>
         <View style={styles.rightGroup}>
-          {streak > 0 && (
-            <View style={[styles.streakBadge, {backgroundColor: colors.primaryContainer}]}>
-              <Text style={[type.labelSmall, {color: colors.onPrimaryContainer}]}>
-                🔥 {streak}
-              </Text>
-            </View>
-          )}
           <M3IconButton
             onPress={onFavoritePress}
             accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
@@ -110,16 +106,10 @@ const styles = StyleSheet.create({
   rightGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
   },
   psalmsRef: {
     letterSpacing: 0.5,
     flex: 1,
     marginRight: spacing.sm,
-  },
-  streakBadge: {
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 3,
-    borderRadius: 9999,
   },
 });
