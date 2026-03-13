@@ -52,7 +52,7 @@ export default function Navigation({
         {/* Row 2: Prev | Grid-icon (chapters) | Next */}
         <View style={styles.row}>
           <M3OutlinedButton
-            label="◀ Prev"
+            label="Prev"
             onPress={onPrevChapter}
             style={styles.flex}
           />
@@ -63,7 +63,7 @@ export default function Navigation({
             <Icons name="grid" size={22} color={colors.primary} />
           </M3IconButton>
           <M3OutlinedButton
-            label="Next ▶"
+            label="Next"
             onPress={onNextChapter}
             style={styles.flex}
           />
