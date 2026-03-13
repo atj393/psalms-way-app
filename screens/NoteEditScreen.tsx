@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import {shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import {getNoteForVerse, saveNote, deleteNote} from '../services/notesService';
@@ -24,6 +25,7 @@ export default function NoteEditScreen() {
   const navigation = useNavigation();
   const route = useRoute<NoteEditRoute>();
   const {chapter, verse} = route.params;
+  const {t} = useTranslation();
   const {colors, type, fontSize, isDark} = useTheme();
   const {bibleVersion} = useAppSettings();
 
@@ -79,7 +81,7 @@ export default function NoteEditScreen() {
           {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
         ]}>
         <View style={styles.titleGroup}>
-          <Text style={[type.titleLarge, {color: colors.onSurface}]}>Note</Text>
+          <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('note')}</Text>
           <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>
             Psalm {chapter}:{verse}
           </Text>
@@ -132,7 +134,7 @@ export default function NoteEditScreen() {
               borderBottomColor: colors.primary,
             },
           ]}
-          placeholder="Write a note for this verse…"
+          placeholder={t('noteHint')}
           placeholderTextColor={colors.onSurfaceVariant}
           value={text}
           onChangeText={setText}
@@ -143,7 +145,7 @@ export default function NoteEditScreen() {
 
         {/* Save button */}
         <M3FilledButton
-          label="Save"
+          label={t('save')}
           onPress={handleSave}
           style={styles.saveBtn}
         />

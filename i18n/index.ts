@@ -16,7 +16,7 @@ const resources = {en, de, fr, es, hi, ta, te, kn, ml};
 type SupportedLanguage = keyof typeof resources;
 const supportedLanguages = Object.keys(resources) as SupportedLanguage[];
 
-function getDeviceLanguage(): SupportedLanguage {
+export function getDeviceLanguage(): SupportedLanguage {
   const tag = findBestLanguageTag(supportedLanguages);
   return (tag?.languageTag as SupportedLanguage) ?? 'en';
 }

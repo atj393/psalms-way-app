@@ -1,7 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {Share, StyleSheet, Text, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
 import {spacing, useTheme} from '../theme';
-import {getRandomVerse} from '../services/psalmsService';
+import {getRandomVerse, getVerse} from '../services/psalmsService';
 import {toggleBookmark, isBookmarked} from '../services/bookmarksService';
 import {useAppSettings} from '../context/AppSettingsContext';
 import Icons from '../components/Icons';
@@ -9,6 +10,7 @@ import {M3Card, M3Chip} from '../components/M3';
 
 type Props = {
   chapter: number;
+  specificVerse?: number; // if >0, show this exact verse (e.g. from notification tap)
   onVerseLoaded: (verseNumber: number) => void;
   onCompare: (verse: number) => void;
   onNoteEdit: (verse: number) => void;
@@ -17,11 +19,13 @@ type Props = {
 
 export default function ChapterVerseScreen({
   chapter,
+  specificVerse,
   onVerseLoaded,
   onCompare,
   onNoteEdit,
   onOpenChapter,
 }: Props) {
+  const {t} = useTranslation();
   const {colors, type, fontSize} = useTheme();
   const {bibleVersion} = useAppSettings();
 
@@ -29,13 +33,18 @@ export default function ChapterVerseScreen({
   const [bookmarked, setBookmarked] = useState(false);
 
   useEffect(() => {
-    const result = getRandomVerse(chapter, bibleVersion);
+    // If a specific verse was requested (e.g. from a notification tap), show it;
+    // otherwise pick a random verse from the chapter.
+    const result =
+      specificVerse && specificVerse > 0
+        ? getVerse(chapter, specificVerse, bibleVersion)
+        : getRandomVerse(chapter, bibleVersion);
     setVerse(result);
     if (result) {
       onVerseLoaded(result.verseNumber);
       isBookmarked(chapter, result.verseNumber).then(setBookmarked).catch(() => {});
     }
-  }, [chapter, bibleVersion, onVerseLoaded]);
+  }, [chapter, specificVerse, bibleVersion, onVerseLoaded]);
 
   if (!verse) {
     return null;
@@ -44,7 +53,7 @@ export default function ChapterVerseScreen({
   const handleShare = async () => {
     try {
       await Share.share({
-        message: `${verse.verse}\n\n— Psalm ${chapter}:${verse.verseNumber} (Psalms Way)`,
+        message: t('shareText', {verse: verse.verse, chapter, verseNum: verse.verseNumber}),
       });
     } catch {}
   };
@@ -76,12 +85,12 @@ export default function ChapterVerseScreen({
         {/* Action chips */}
         <View style={styles.chips}>
           <M3Chip
-            label="Share"
+            label={t('share')}
             leading={<Icons name="share" size={16} color={colors.onSurfaceVariant} />}
             onPress={handleShare}
           />
           <M3Chip
-            label="Save"
+            label={t('bookmark')}
             selected={bookmarked}
             leading={
               <Icons
@@ -93,17 +102,17 @@ export default function ChapterVerseScreen({
             onPress={handleBookmark}
           />
           <M3Chip
-            label="Compare"
+            label={t('compare')}
             leading={<Icons name="compare" size={16} color={colors.onSurfaceVariant} />}
             onPress={() => onCompare(verse.verseNumber)}
           />
           <M3Chip
-            label="Note"
+            label={t('note')}
             leading={<Icons name="note-outline" size={16} color={colors.onSurfaceVariant} />}
             onPress={() => onNoteEdit(verse.verseNumber)}
           />
           <M3Chip
-            label="Chapter"
+            label={t('chapters')}
             leading={<Icons name="library" size={16} color={colors.onSurfaceVariant} />}
             onPress={onOpenChapter}
           />

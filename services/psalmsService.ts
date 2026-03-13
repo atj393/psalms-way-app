@@ -14,6 +14,16 @@ export function getChapter(chapter: number, version: BibleVersion = 'modern'): s
   return data[chapter - 1] ?? [];
 }
 
+export function getVerse(
+  chapter: number,
+  verseNumber: number,
+  version: BibleVersion = 'modern',
+): {verse: string; verseNumber: number} | null {
+  const verses = getChapter(chapter, version);
+  if (verseNumber < 1 || verseNumber > verses.length) return null;
+  return {verse: verses[verseNumber - 1], verseNumber};
+}
+
 export function getRandomVerse(
   chapter: number,
   version: BibleVersion = 'modern',

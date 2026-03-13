@@ -2,6 +2,7 @@ import React from 'react';
 import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
 import {shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import type {RootStackParamList} from '../App';
@@ -23,6 +24,7 @@ export default function ChapterSelectScreen() {
   const navigation = useNavigation();
   const route = useRoute<ChapterSelectRoute>();
   const {onSelect} = route.params;
+  const {t} = useTranslation();
   const {colors, type, isDark} = useTheme();
 
   const handleSelect = (chapter: number) => {
@@ -42,8 +44,8 @@ export default function ChapterSelectScreen() {
           {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
         ]}>
         <View style={styles.titleGroup}>
-          <Text style={[type.titleLarge, {color: colors.onSurface}]}>Select a Psalm</Text>
-          <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>150 psalms</Text>
+          <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('selectPsalm')}</Text>
+          <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>{t('psalms150')}</Text>
         </View>
         <M3IconButton
           onPress={() => navigation.goBack()}

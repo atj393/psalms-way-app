@@ -1,6 +1,7 @@
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useTranslation} from 'react-i18next';
 import {spacing, useTheme} from '../theme';
 import {M3FilledButton, M3OutlinedButton, M3Divider, M3IconButton} from './M3';
 import Icons from './Icons';
@@ -20,6 +21,7 @@ export default function Navigation({
   onNextChapter,
   onOpenChapterSelect,
 }: Props) {
+  const {t} = useTranslation();
   const {colors} = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -38,12 +40,12 @@ export default function Navigation({
         {/* Row 1: Primary filled buttons */}
         <View style={styles.row}>
           <M3FilledButton
-            label="New Verse"
+            label={t('newVerse')}
             onPress={onNewVerse}
             style={styles.flex}
           />
           <M3FilledButton
-            label="New Chapter"
+            label={t('newChapter')}
             onPress={onNewChapter}
             style={styles.flex}
           />
@@ -52,7 +54,7 @@ export default function Navigation({
         {/* Row 2: Prev | Grid-icon (chapters) | Next */}
         <View style={styles.row}>
           <M3OutlinedButton
-            label="Prev"
+            label={t('prev')}
             onPress={onPrevChapter}
             style={styles.flex}
           />
@@ -63,7 +65,7 @@ export default function Navigation({
             <Icons name="grid" size={22} color={colors.primary} />
           </M3IconButton>
           <M3OutlinedButton
-            label="Next"
+            label={t('next')}
             onPress={onNextChapter}
             style={styles.flex}
           />
