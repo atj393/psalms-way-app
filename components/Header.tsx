@@ -64,7 +64,7 @@ export default function Header({
       {/* Row 2: Psalm reference (larger) + streak badge + favorite */}
       <View style={styles.row}>
         <Text
-          style={[type.titleMedium, styles.psalmsRef, {color: colors.onSurface}]}
+          style={[type.titleLarge, styles.psalmsRef, {color: colors.onSurface}]}
           numberOfLines={1}>
           {psalmsRef}
         </Text>
