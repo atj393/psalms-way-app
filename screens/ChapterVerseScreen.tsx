@@ -1,10 +1,11 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {Share, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {createVerseStyles, spacing, useTheme} from '../theme';
+import React, {useEffect, useState} from 'react';
+import {Share, StyleSheet, Text, View} from 'react-native';
+import {spacing, useTheme} from '../theme';
 import {getRandomVerse} from '../services/psalmsService';
 import {toggleBookmark, isBookmarked} from '../services/bookmarksService';
 import {useAppSettings} from '../context/AppSettingsContext';
 import Icons from '../components/Icons';
+import {M3Card, M3Chip} from '../components/M3';
 
 type Props = {
   chapter: number;
@@ -19,9 +20,8 @@ export default function ChapterVerseScreen({
   onCompare,
   onNoteEdit,
 }: Props) {
-  const {colors, fontSize} = useTheme();
+  const {colors, type, fontSize} = useTheme();
   const {bibleVersion} = useAppSettings();
-  const verseStyles = useMemo(() => createVerseStyles(colors, fontSize), [colors, fontSize]);
 
   const [verse, setVerse] = useState<{verse: string; verseNumber: number} | null>(null);
   const [bookmarked, setBookmarked] = useState(false);
@@ -51,68 +51,65 @@ export default function ChapterVerseScreen({
   };
 
   return (
-    <View style={[verseStyles.container, styles.wrapper]}>
-      {/* Decorative accent line */}
-      <View style={[styles.accent, {backgroundColor: colors.primary}]} />
+    <View style={[styles.wrapper, {backgroundColor: colors.background}]}>
+      <M3Card variant="elevated" style={styles.card}>
+        {/* Accent bar */}
+        <View style={[styles.accent, {backgroundColor: colors.primaryContainer}]} />
 
-      {/* Reference label */}
-      <Text style={[styles.reference, {color: colors.primary, fontSize: fontSize - 5}]}>
-        {`PSALM ${chapter}:${verse.verseNumber}`}
-      </Text>
+        {/* Reference */}
+        <Text
+          style={[
+            type.labelLarge,
+            styles.reference,
+            {color: colors.primary},
+          ]}>
+          {`PSALM ${chapter}:${verse.verseNumber}`}
+        </Text>
 
-      {/* Verse text */}
-      <Text style={verseStyles.verseText}>{verse.verse}</Text>
+        {/* Verse text — user fontSize applies here only */}
+        <Text
+          style={{
+            fontFamily: 'Roboto',
+            fontSize,
+            lineHeight: fontSize * 1.8,
+            color: colors.onSurface,
+            letterSpacing: 0.5,
+            marginTop: spacing.xs,
+          }}>
+          {verse.verse}
+        </Text>
 
-      {/* Action buttons */}
-      <View style={styles.actions}>
-        <TouchableOpacity
-          onPress={handleShare}
-          style={[styles.actionBtn, {backgroundColor: colors.surface}]}
-          accessibilityLabel="Share verse">
-          <Icons name="share" size={18} color={colors.textSecondary} />
-          <Text style={[styles.actionLabel, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
-            Share
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={handleBookmark}
-          style={[styles.actionBtn, {backgroundColor: colors.surface}]}
-          accessibilityLabel={bookmarked ? 'Remove bookmark' : 'Add bookmark'}>
-          <Icons
-            name={bookmarked ? 'bookmark' : 'bookmark-outline'}
-            size={18}
-            color={bookmarked ? colors.primary : colors.textSecondary}
+        {/* Action assist chips */}
+        <View style={styles.chips}>
+          <M3Chip
+            label="Share"
+            leading={<Icons name="share" size={16} color={colors.onSurfaceVariant} />}
+            onPress={handleShare}
           />
-          <Text
-            style={[
-              styles.actionLabel,
-              {color: bookmarked ? colors.primary : colors.textSecondary, fontSize: fontSize - 6},
-            ]}>
-            Save
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => onCompare(verse.verseNumber)}
-          style={[styles.actionBtn, {backgroundColor: colors.surface}]}
-          accessibilityLabel="Compare translations">
-          <Icons name="compare" size={18} color={colors.textSecondary} />
-          <Text style={[styles.actionLabel, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
-            Compare
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          onPress={() => onNoteEdit(verse.verseNumber)}
-          style={[styles.actionBtn, {backgroundColor: colors.surface}]}
-          accessibilityLabel="Add note">
-          <Icons name="note-outline" size={18} color={colors.textSecondary} />
-          <Text style={[styles.actionLabel, {color: colors.textSecondary, fontSize: fontSize - 6}]}>
-            Note
-          </Text>
-        </TouchableOpacity>
-      </View>
+          <M3Chip
+            label="Save"
+            selected={bookmarked}
+            leading={
+              <Icons
+                name={bookmarked ? 'bookmark' : 'bookmark-outline'}
+                size={16}
+                color={bookmarked ? colors.onSecondaryContainer : colors.onSurfaceVariant}
+              />
+            }
+            onPress={handleBookmark}
+          />
+          <M3Chip
+            label="Compare"
+            leading={<Icons name="compare" size={16} color={colors.onSurfaceVariant} />}
+            onPress={() => onCompare(verse.verseNumber)}
+          />
+          <M3Chip
+            label="Note"
+            leading={<Icons name="note-outline" size={16} color={colors.onSurfaceVariant} />}
+            onPress={() => onNoteEdit(verse.verseNumber)}
+          />
+        </View>
+      </M3Card>
     </View>
   );
 }
@@ -120,37 +117,26 @@ export default function ChapterVerseScreen({
 const styles = StyleSheet.create({
   wrapper: {
     flex: 1,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.xl,
+    padding: spacing.md,
     justifyContent: 'center',
+  },
+  card: {
+    padding: spacing.lg,
   },
   accent: {
     width: 32,
     height: 3,
-    borderRadius: 2,
-    marginBottom: spacing.md,
+    borderRadius: spacing.xs,
+    marginBottom: spacing.sm,
   },
   reference: {
-    fontFamily: 'Roboto',
-    fontWeight: '700',
-    letterSpacing: 1.5,
-    marginBottom: spacing.md,
+    letterSpacing: 1.2,
+    marginBottom: spacing.sm,
   },
-  actions: {
+  chips: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
     marginTop: spacing.xl,
-  },
-  actionBtn: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: spacing.sm,
-    borderRadius: 12,
-    gap: 4,
-  },
-  actionLabel: {
-    fontFamily: 'Roboto',
-    fontWeight: '500',
   },
 });
