@@ -1,6 +1,8 @@
 import React, {useState} from 'react';
 import {
   Alert,
+  FlatList,
+  Modal,
   Platform,
   ScrollView,
   StyleSheet,
@@ -21,7 +23,9 @@ import {
   scheduleDailyNotification,
   cancelDailyNotification,
 } from '../services/notificationService';
-import {M3Card, M3Divider, M3IconButton, M3SegmentedButton, M3Chip} from '../components/M3';
+import {M3Card, M3Divider, M3IconButton, M3Pressable, M3SegmentedButton, M3TextButton} from '../components/M3';
+
+// ─── Constants ───────────────────────────────────────────────────────────────
 
 const FONT_SIZES: {label: string; size: number; a11y: string}[] = [
   {label: 'A', size: 16, a11y: 'Small text'},
@@ -42,7 +46,7 @@ const BIBLE_VERSIONS: {label: string; value: BibleVersion; a11y: string}[] = [
 
 type LangOption = {label: string; value: AppLanguage | 'auto'};
 const LANGUAGES: LangOption[] = [
-  {label: 'Auto', value: 'auto'},
+  {label: 'Auto (device)', value: 'auto'},
   {label: 'English', value: 'en'},
   {label: 'Deutsch', value: 'de'},
   {label: 'Français', value: 'fr'},
@@ -54,12 +58,18 @@ const LANGUAGES: LangOption[] = [
   {label: 'മലയാളം', value: 'ml'},
 ];
 
+function getLangLabel(value: AppLanguage | 'auto'): string {
+  return LANGUAGES.find(l => l.value === value)?.label ?? 'Auto (device)';
+}
+
 function formatTime(hour: number, minute: number): string {
   const h = hour % 12 || 12;
   const m = String(minute).padStart(2, '0');
   const ampm = hour < 12 ? 'AM' : 'PM';
   return `${h}:${m} ${ampm}`;
 }
+
+// ─── Component ───────────────────────────────────────────────────────────────
 
 export default function SettingsScreen() {
   const navigation = useNavigation();
@@ -81,9 +91,11 @@ export default function SettingsScreen() {
   } = useAppSettings();
 
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [langModalVisible, setLangModalVisible] = useState(false);
 
   const handleSetLanguage = (lang: AppLanguage | 'auto') => {
     setLanguage(lang);
+    setLangModalVisible(false);
     const resolved = lang === 'auto' ? undefined : lang;
     if (resolved) {
       i18n.changeLanguage(resolved).catch(() => {});
@@ -136,7 +148,7 @@ export default function SettingsScreen() {
       style={[styles.container, {backgroundColor: colors.background}]}
       edges={['top', 'bottom']}>
 
-      {/* MD3 Top App Bar */}
+      {/* Top App Bar */}
       <View
         style={[
           styles.appBar,
@@ -199,24 +211,31 @@ export default function SettingsScreen() {
 
         {/* LANGUAGE */}
         <SectionLabel label="LANGUAGE" />
-        <View style={styles.chipRow}>
-          {LANGUAGES.map(opt => (
-            <M3Chip
-              key={opt.value}
-              label={opt.label}
-              type="filter"
-              selected={language === opt.value}
-              onPress={() => handleSetLanguage(opt.value)}
-            />
-          ))}
-        </View>
+        <M3Card variant="filled" style={styles.notifCard}>
+          <TouchableOpacity
+            style={styles.settingsRow}
+            onPress={() => setLangModalVisible(true)}
+            accessibilityLabel="Select language">
+            <View style={styles.settingsRowLeft}>
+              <Text style={[type.titleSmall, {color: colors.onSurface}]}>🌐 Language</Text>
+              <Text style={[type.bodySmall, {color: colors.onSurfaceVariant}]}>
+                Applies to app text
+              </Text>
+            </View>
+            <View style={styles.settingsRowRight}>
+              <Text style={[type.labelLarge, {color: colors.primary}]}>
+                {getLangLabel(language)}
+              </Text>
+              <Icons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
+            </View>
+          </TouchableOpacity>
+        </M3Card>
 
         {/* DAILY VERSE */}
         <SectionLabel label="DAILY VERSE" />
         <M3Card variant="filled" style={styles.notifCard}>
-          {/* Toggle row */}
-          <View style={styles.notifRow}>
-            <View style={styles.notifRowLeft}>
+          <View style={styles.settingsRow}>
+            <View style={styles.settingsRowLeft}>
               <Text style={[type.titleSmall, {color: colors.onSurface}]}>
                 Daily verse reminder
               </Text>
@@ -234,12 +253,12 @@ export default function SettingsScreen() {
 
           {notificationEnabled && (
             <>
-              <M3Divider style={styles.notifDivider} />
+              <M3Divider style={styles.rowDivider} />
               <TouchableOpacity
-                style={styles.notifRow}
+                style={styles.settingsRow}
                 onPress={() => setShowTimePicker(true)}
                 accessibilityLabel="Change notification time">
-                <View style={styles.notifRowLeft}>
+                <View style={styles.settingsRowLeft}>
                   <Text style={[type.titleSmall, {color: colors.onSurface}]}>
                     ⏰ Reminder time
                   </Text>
@@ -263,9 +282,82 @@ export default function SettingsScreen() {
           />
         )}
       </ScrollView>
+
+      {/* ─── Language picker modal ─────────────────────────────────────── */}
+      <Modal
+        visible={langModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setLangModalVisible(false)}>
+        {/* Backdrop */}
+        <TouchableOpacity
+          style={[styles.modalBackdrop, {backgroundColor: colors.scrim + '99'}]}
+          activeOpacity={1}
+          onPress={() => setLangModalVisible(false)}
+        />
+
+        {/* Sheet */}
+        <View
+          style={[
+            styles.modalSheet,
+            {
+              backgroundColor: colors.surface,
+              borderTopLeftRadius: shape.extraLarge,
+              borderTopRightRadius: shape.extraLarge,
+            },
+          ]}>
+          <View style={styles.modalHandle} />
+          <Text style={[type.titleMedium, styles.modalTitle, {color: colors.onSurface}]}>
+            Select Language
+          </Text>
+          <M3Divider />
+
+          <FlatList
+            data={LANGUAGES}
+            keyExtractor={item => item.value}
+            style={styles.modalList}
+            renderItem={({item}) => {
+              const isSelected = language === item.value;
+              return (
+                <M3Pressable
+                  onPress={() => handleSetLanguage(item.value)}
+                  style={[
+                    styles.langRow,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.secondaryContainer
+                        : 'transparent',
+                    },
+                  ]}>
+                  <Text
+                    style={[
+                      type.bodyLarge,
+                      {
+                        flex: 1,
+                        color: isSelected ? colors.onSecondaryContainer : colors.onSurface,
+                      },
+                    ]}>
+                    {item.label}
+                  </Text>
+                  {isSelected && (
+                    <Icons name="check" size={20} color={colors.primary} />
+                  )}
+                </M3Pressable>
+              );
+            }}
+          />
+
+          <M3Divider />
+          <View style={styles.modalFooter}>
+            <M3TextButton label="Cancel" onPress={() => setLangModalVisible(false)} />
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
   container: {flex: 1},
@@ -295,26 +387,61 @@ const styles = StyleSheet.create({
   sectionCard: {
     padding: spacing.sm,
   },
-  chipRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
   notifCard: {
     overflow: 'hidden',
   },
-  notifRow: {
+  settingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 4,
     gap: spacing.md,
   },
-  notifRowLeft: {
+  settingsRowLeft: {
     flex: 1,
     gap: 2,
   },
-  notifDivider: {
+  settingsRowRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  rowDivider: {
     marginHorizontal: spacing.md,
+  },
+  // Modal
+  modalBackdrop: {
+    flex: 1,
+  },
+  modalSheet: {
+    maxHeight: '70%',
+  },
+  modalHandle: {
+    width: 32,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#9E9E9E',
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  modalTitle: {
+    paddingHorizontal: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  modalList: {
+    flexGrow: 0,
+  },
+  langRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm + 4,
+    gap: spacing.md,
+  },
+  modalFooter: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    padding: spacing.sm,
   },
 });

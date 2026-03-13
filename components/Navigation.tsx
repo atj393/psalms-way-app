@@ -2,7 +2,8 @@ import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {spacing, useTheme} from '../theme';
-import {M3FilledButton, M3OutlinedButton, M3TonalButton, M3Divider} from './M3';
+import {M3FilledButton, M3OutlinedButton, M3Divider, M3IconButton} from './M3';
+import Icons from './Icons';
 
 type Props = {
   onNewVerse: () => void;
@@ -48,18 +49,19 @@ export default function Navigation({
           />
         </View>
 
-        {/* Row 2: Secondary nav buttons */}
+        {/* Row 2: Prev | Grid-icon (chapters) | Next */}
         <View style={styles.row}>
           <M3OutlinedButton
             label="◀ Prev"
             onPress={onPrevChapter}
             style={styles.flex}
           />
-          <M3TonalButton
-            label="Chapters"
+          <M3IconButton
             onPress={onOpenChapterSelect}
-            style={styles.flex}
-          />
+            accessibilityLabel="Select chapter"
+            style={styles.chapterIconBtn}>
+            <Icons name="grid" size={22} color={colors.primary} />
+          </M3IconButton>
           <M3OutlinedButton
             label="Next ▶"
             onPress={onNextChapter}
@@ -72,9 +74,7 @@ export default function Navigation({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    // background and paddingBottom set dynamically
-  },
+  container: {},
   inner: {
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm + 4,
@@ -83,9 +83,15 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: 'row',
+    alignItems: 'center',
     gap: spacing.sm,
   },
   flex: {
     flex: 1,
+  },
+  chapterIconBtn: {
+    width: 48,
+    height: 40,
+    borderRadius: 9999,
   },
 });

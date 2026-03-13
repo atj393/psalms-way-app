@@ -12,6 +12,7 @@ type Props = {
   onVerseLoaded: (verseNumber: number) => void;
   onCompare: (verse: number) => void;
   onNoteEdit: (verse: number) => void;
+  onOpenChapter: () => void;
 };
 
 export default function ChapterVerseScreen({
@@ -19,6 +20,7 @@ export default function ChapterVerseScreen({
   onVerseLoaded,
   onCompare,
   onNoteEdit,
+  onOpenChapter,
 }: Props) {
   const {colors, type, fontSize} = useTheme();
   const {bibleVersion} = useAppSettings();
@@ -35,7 +37,9 @@ export default function ChapterVerseScreen({
     }
   }, [chapter, bibleVersion, onVerseLoaded]);
 
-  if (!verse) return null;
+  if (!verse) {
+    return null;
+  }
 
   const handleShare = async () => {
     try {
@@ -56,17 +60,7 @@ export default function ChapterVerseScreen({
         {/* Accent bar */}
         <View style={[styles.accent, {backgroundColor: colors.primaryContainer}]} />
 
-        {/* Reference */}
-        <Text
-          style={[
-            type.labelLarge,
-            styles.reference,
-            {color: colors.primary},
-          ]}>
-          {`PSALM ${chapter}:${verse.verseNumber}`}
-        </Text>
-
-        {/* Verse text — user fontSize applies here only */}
+        {/* Verse text — user fontSize */}
         <Text
           style={{
             fontFamily: 'Roboto',
@@ -79,7 +73,7 @@ export default function ChapterVerseScreen({
           {verse.verse}
         </Text>
 
-        {/* Action assist chips */}
+        {/* Action chips */}
         <View style={styles.chips}>
           <M3Chip
             label="Share"
@@ -108,6 +102,11 @@ export default function ChapterVerseScreen({
             leading={<Icons name="note-outline" size={16} color={colors.onSurfaceVariant} />}
             onPress={() => onNoteEdit(verse.verseNumber)}
           />
+          <M3Chip
+            label="Chapter"
+            leading={<Icons name="library" size={16} color={colors.onSurfaceVariant} />}
+            onPress={onOpenChapter}
+          />
         </View>
       </M3Card>
     </View>
@@ -121,7 +120,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    padding: spacing.lg,
+    padding: spacing.md,
   },
   accent: {
     width: 32,
@@ -129,14 +128,10 @@ const styles = StyleSheet.create({
     borderRadius: spacing.xs,
     marginBottom: spacing.sm,
   },
-  reference: {
-    letterSpacing: 1.2,
-    marginBottom: spacing.sm,
-  },
   chips: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.xl,
+    marginTop: spacing.lg,
   },
 });
