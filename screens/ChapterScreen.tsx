@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   verseRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    paddingHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.sm + 4,
     gap: spacing.sm,
   },

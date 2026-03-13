@@ -165,6 +165,11 @@ export default function HomeScreen() {
     [navigation, chapter],
   );
 
+  const onOpenChapter = useCallback(() => {
+    setSubScreen('chapter');
+    scrollTop();
+  }, []);
+
   return (
     <SafeAreaView style={[styles.container, {backgroundColor: colors.background}]}>
       <Header
@@ -192,6 +197,7 @@ export default function HomeScreen() {
             onVerseLoaded={onVerseLoaded}
             onCompare={openCompare}
             onNoteEdit={openNoteEdit}
+            onOpenChapter={onOpenChapter}
           />
         </ScrollView>
       )}
