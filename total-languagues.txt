@@ -1,0 +1,10 @@
+Languages with multiple versions	Count
+English (en)	9 versions
+Chinese (zh)	6 versions
+German (de)	5 versions
+Spanish (es)	5 versions
+French (fr)	4 versions
+Portuguese (pt)	3 versions
+Polish (pl)	3 versions
+Japanese, Romanian, Hebrew, Indonesian, Kannada, Tamil	2 each
+All others (35 languages)	1 each
