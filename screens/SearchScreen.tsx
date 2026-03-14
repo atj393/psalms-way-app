@@ -134,7 +134,7 @@ export default function SearchScreen() {
                   styles.resultRef,
                   {color: colors.primary},
                 ]}>
-                PSALM {item.chapter}:{item.verse}
+                {t('psalmRef', {chapter: item.chapter, verse: item.verse})}
               </Text>
               <Text style={styles.resultText} numberOfLines={2}>
                 {parts.map((part, i) => (

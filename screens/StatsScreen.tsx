@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 import { spacing, useTheme } from '../theme';
 import { M3Card, M3Divider, M3IconButton } from '../components/M3';
 import Icons from '../components/Icons';
@@ -71,6 +72,7 @@ function StatRow({ label, value, icon }: { label: string; value: number; icon?: 
 
 export default function StatsScreen() {
     const navigation = useNavigation();
+    const { t } = useTranslation();
     const { colors, type, isDark } = useTheme();
 
     const [data, setData] = useState<StatsData | null>(null);
@@ -107,7 +109,7 @@ export default function StatsScreen() {
     // for a local analytics screen.
     const last7Days = useMemo(() => {
         if (!data) { return []; }
-        const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const DAY_LABELS = t('daysShort').split('_');
         const readDates = new Set(data.history.map(h => h.date.split('T')[0]));
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date();
@@ -157,13 +159,13 @@ export default function StatsScreen() {
                 ]}>
                 <View style={styles.appBarTitle}>
                     <Text style={[type.titleLarge, { color: colors.onSurface }]}>
-                        Reading Stats
+                        {t('statsTitle')}
                     </Text>
                     <Text style={[type.labelMedium, { color: colors.onSurfaceVariant }]}>
-                        Your reading journey
+                        {t('statsSubtitle')}
                     </Text>
                 </View>
-                <M3IconButton onPress={() => navigation.goBack()} accessibilityLabel="Close">
+                <M3IconButton onPress={() => navigation.goBack()} accessibilityLabel={t('a11yClose')}>
                     <Icons name="close" size={24} color={colors.onSurfaceVariant} />
                 </M3IconButton>
             </View>
@@ -191,20 +193,20 @@ export default function StatsScreen() {
                                             type.bodyLarge,
                                             { color: colors.onSurfaceVariant, alignSelf: 'flex-end', marginBottom: 4, marginLeft: spacing.xs },
                                         ]}>
-                                        day streak
+                                        {t('statsDayStreak')}
                                     </Text>
                                 </View>
                             </View>
                         </View>
                         <M3Divider style={styles.cardDivider} />
                         <Text style={[type.bodyMedium, { color: colors.onSurfaceVariant, paddingTop: spacing.xs }]}>
-                            Longest streak: <Text style={{ color: colors.primary, fontWeight: '600' }}>{data?.longestStreak ?? 0} days</Text>
+                            {t('statsLongestStreak', { count: data?.longestStreak ?? 0 })}
                         </Text>
                     </M3Card>
 
                     {/* ── Last 7 days card ── */}
                     <M3Card variant="elevated" style={styles.card}>
-                        <SectionLabel label="LAST 7 DAYS" />
+                        <SectionLabel label={t('statsLast7Days')} />
                         <View style={styles.weekRow}>
                             {last7Days.map((day, idx) => (
                                 <View key={idx} style={styles.dayCol}>
@@ -234,15 +236,15 @@ export default function StatsScreen() {
 
                     {/* ── Totals card ── */}
                     <M3Card variant="filled" style={styles.card}>
-                        <SectionLabel label="READING TOTALS" />
+                        <SectionLabel label={t('statsReadingTotals')} />
                         <StatRow
-                            label="Chapters read (unique)"
+                            label={t('statsChaptersRead')}
                             value={uniqueChapters}
                             icon={<Icons name="library" size={18} color={colors.onSurfaceVariant} />}
                         />
                         <M3Divider style={styles.rowDivider} />
                         <StatRow
-                            label="Total sessions"
+                            label={t('statsTotalSessions')}
                             value={data?.history.length ?? 0}
                             icon={<Icons name="history" size={18} color={colors.onSurfaceVariant} />}
                         />
@@ -275,14 +277,15 @@ export default function StatsScreen() {
                     {/* ── Recent activity card ── */}
                     {recentActivity.length > 0 && (
                         <M3Card variant="elevated" style={styles.card}>
-                            <SectionLabel label="RECENT ACTIVITY" />
+                            <SectionLabel label={t('statsRecentActivity')} />
                             {recentActivity.map((item, idx) => (
                                 <React.Fragment key={idx}>
                                     {idx > 0 && <M3Divider style={styles.rowDivider} />}
                                     <View style={styles.chapterRow}>
                                         <Text style={[type.bodyMedium, { color: colors.onSurface, flex: 1 }]}>
-                                            Psalm {item.chapter}
-                                            {item.verse > 0 ? `:${item.verse}` : ''}
+                                            {item.verse > 0
+                                                ? t('psalmSubtitle', { chapter: item.chapter, verse: item.verse })
+                                                : t('psalmTitle', { chapter: item.chapter })}
                                         </Text>
                                         <Text style={[type.bodySmall, { color: colors.onSurfaceVariant }]}>
                                             {formatDate(item.date)}
@@ -297,13 +300,13 @@ export default function StatsScreen() {
                     {/* ── Most read card ── */}
                     {topChapters.length > 0 && (
                         <M3Card variant="elevated" style={styles.card}>
-                            <SectionLabel label="MOST READ" />
+                            <SectionLabel label={t('statsMostRead')} />
                             {topChapters.map((item, idx) => (
                                 <React.Fragment key={item.chapter}>
                                     {idx > 0 && <M3Divider style={styles.rowDivider} />}
                                     <View style={styles.chapterRow}>
                                         <Text style={[type.bodyMedium, { color: colors.onSurface, flex: 1 }]}>
-                                            Psalm {item.chapter}
+                                            {t('psalmTitle', { chapter: item.chapter })}
                                         </Text>
                                         <View style={[styles.countPill, { backgroundColor: colors.primaryContainer }]}>
                                             <Text style={[type.labelSmall, { color: colors.onPrimaryContainer }]}>

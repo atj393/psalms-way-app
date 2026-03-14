@@ -49,7 +49,7 @@ export default function ChapterSelectScreen() {
         </View>
         <M3IconButton
           onPress={() => navigation.goBack()}
-          accessibilityLabel="Close">
+          accessibilityLabel={t('a11yClose')}>
           <Icons name="close" size={22} color={colors.onSurfaceVariant} />
         </M3IconButton>
       </View>
@@ -70,7 +70,7 @@ export default function ChapterSelectScreen() {
         renderItem={({item}) => (
           <M3Pressable
             onPress={() => handleSelect(item)}
-            accessibilityLabel={`Psalm ${item}`}
+            accessibilityLabel={t('a11ySelectChapter')}
             style={[
               styles.tile,
               {

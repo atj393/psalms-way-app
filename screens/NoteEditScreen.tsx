@@ -48,7 +48,7 @@ export default function NoteEditScreen() {
   const handleSave = async () => {
     const trimmed = text.trim();
     if (!trimmed) {
-      Alert.alert('Empty note', 'Please write something before saving.');
+      Alert.alert(t('emptyNoteTitle'), t('emptyNoteMessage'));
       return;
     }
     await saveNote(chapter, verse, trimmed);
@@ -56,10 +56,10 @@ export default function NoteEditScreen() {
   };
 
   const handleDelete = () => {
-    Alert.alert('Delete note', 'Are you sure you want to delete this note?', [
-      {text: 'Cancel', style: 'cancel'},
+    Alert.alert(t('deleteNoteTitle'), t('deleteNoteMessage'), [
+      {text: t('cancel'), style: 'cancel'},
       {
-        text: 'Delete',
+        text: t('delete'),
         style: 'destructive',
         onPress: async () => {
           await deleteNote(chapter, verse);
@@ -83,20 +83,20 @@ export default function NoteEditScreen() {
         <View style={styles.titleGroup}>
           <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('note')}</Text>
           <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>
-            Psalm {chapter}:{verse}
+            {t('psalmSubtitle', {chapter, verse})}
           </Text>
         </View>
         <View style={styles.appBarActions}>
           {existingNote && (
             <M3IconButton
               onPress={handleDelete}
-              accessibilityLabel="Delete note">
+              accessibilityLabel={t('a11yDeleteNote')}>
               <Icons name="trash" size={22} color={colors.onSurfaceVariant} />
             </M3IconButton>
           )}
           <M3IconButton
             onPress={() => navigation.goBack()}
-            accessibilityLabel="Close">
+            accessibilityLabel={t('a11yClose')}>
             <Icons name="close" size={22} color={colors.onSurfaceVariant} />
           </M3IconButton>
         </View>
@@ -113,7 +113,7 @@ export default function NoteEditScreen() {
               type.labelLarge,
               {color: colors.primary, letterSpacing: 1.5},
             ]}>
-            PSALM {chapter}:{verse}
+            {t('psalmRef', {chapter, verse})}
           </Text>
           <Text
             style={[type.bodyMedium, {color: colors.onSurface, marginTop: spacing.xs}]}

@@ -1,5 +1,6 @@
 import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
 import Icons from './Icons';
 import {spacing, useTheme, type SubScreen} from '../theme';
 import {M3IconButton} from './M3';
@@ -27,12 +28,13 @@ export default function Header({
   onFavoritePress,
   onStatsPress,
 }: Props) {
+  const {t} = useTranslation();
   const {colors, type, isDark} = useTheme();
 
   const psalmsRef =
     subScreen === 'verse' && highlightVerse > 0
-      ? `Psalm ${chapter}:${highlightVerse}`
-      : `Psalm ${chapter}`;
+      ? t('psalmSubtitle', {chapter, verse: highlightVerse})
+      : t('psalmTitle', {chapter});
 
   const iconColor = colors.onSurfaceVariant;
 
@@ -49,16 +51,16 @@ export default function Header({
           Psalms Way
         </Text>
         <View style={styles.iconGroup}>
-          <M3IconButton onPress={onSearchPress} accessibilityLabel="Search psalms">
+          <M3IconButton onPress={onSearchPress} accessibilityLabel={t('a11ySearchPsalms')}>
             <Icons name="search" size={22} color={iconColor} />
           </M3IconButton>
-          <M3IconButton onPress={onStatsPress} accessibilityLabel="Reading stats">
+          <M3IconButton onPress={onStatsPress} accessibilityLabel={t('a11yReadingStats')}>
             <Icons name="insights" size={22} color={iconColor} />
           </M3IconButton>
-          <M3IconButton onPress={onLibraryPress} accessibilityLabel="Open library">
+          <M3IconButton onPress={onLibraryPress} accessibilityLabel={t('a11yOpenLibrary')}>
             <Icons name="library" size={22} color={iconColor} />
           </M3IconButton>
-          <M3IconButton onPress={onSettingsPress} accessibilityLabel="Open settings">
+          <M3IconButton onPress={onSettingsPress} accessibilityLabel={t('a11yOpenSettings')}>
             <Icons name="settings" size={22} color={iconColor} />
           </M3IconButton>
         </View>
@@ -74,7 +76,7 @@ export default function Header({
         <View style={styles.rightGroup}>
           <M3IconButton
             onPress={onFavoritePress}
-            accessibilityLabel={isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
+            accessibilityLabel={isFavorite ? t('a11yRemoveFavorite') : t('a11yAddFavorite')}>
             <Icons
               name={isFavorite ? 'star' : 'star-outline'}
               size={22}

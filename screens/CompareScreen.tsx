@@ -76,12 +76,12 @@ export default function CompareScreen() {
         <View style={styles.titleGroup}>
           <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('compare')}</Text>
           <Text style={[type.labelMedium, {color: colors.onSurfaceVariant}]}>
-            Psalm {chapter}:{verse}
+            {t('psalmSubtitle', {chapter, verse})}
           </Text>
         </View>
         <M3IconButton
           onPress={() => navigation.goBack()}
-          accessibilityLabel="Close compare">
+          accessibilityLabel={t('a11yCloseCompare')}>
           <Icons name="close" size={22} color={colors.onSurfaceVariant} />
         </M3IconButton>
       </View>
