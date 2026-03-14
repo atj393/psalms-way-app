@@ -8,8 +8,6 @@
   "themeLight": "Hell",
   "themeDark": "Dunkel",
   "bibleVersion": "BIBELVERSION",
-  "bibleModern": "Modern",
-  "bibleKjv": "KJV",
   "language": "SPRACHE",
   "languageAuto": "Auto ({{lang}})",
   "selectPsalm": "Psalm auswählen",

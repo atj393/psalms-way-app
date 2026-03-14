@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -14,6 +15,8 @@ import CompareScreen from './screens/CompareScreen';
 import NoteEditScreen from './screens/NoteEditScreen';
 import StatsScreen from './screens/StatsScreen';
 import notifee, {EventType} from '@notifee/react-native';
+import {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
+export {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
 
 export type RootStackParamList = {
   Home: {chapter?: number; verse?: number} | undefined;
@@ -35,27 +38,33 @@ export default function App() {
   const pendingNav = useRef<{chapter: number; verse: number} | null>(null);
 
   useEffect(() => {
-    // Handle notification tap when app is already in foreground
+    // Helper: notify HomeScreen directly via DeviceEventEmitter (reliable for
+    // both cold-start and background→foreground cases, bypasses React Navigation
+    // params which can be a no-op when Home is already the active screen).
+    function dispatchNotifPress(chapter: number, verse: number) {
+      if (!chapter) return;
+      DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {chapter, verse} as NotifPressPayload);
+    }
+
+    // Handle notification tap when app is in foreground or background.
     const unsubscribe = notifee.onForegroundEvent(({type, detail}) => {
       if (type === EventType.PRESS && detail.notification?.data) {
         const chapter = Number(detail.notification.data.chapter);
         const verse = Number(detail.notification.data.verse);
-        if (chapter && navigationRef.isReady()) {
-          navigationRef.navigate('Home', {chapter, verse});
-        }
+        dispatchNotifPress(chapter, verse);
       }
     });
 
-    // Handle notification tap that cold-started or resumed the app.
-    // getInitialNotification() may resolve before the NavigationContainer is
-    // ready, so we store the destination and navigate in onReady if needed.
+    // Handle notification tap that cold-started the app.
+    // getInitialNotification() may resolve before NavigationContainer is ready,
+    // so we store it and emit in onReady if needed.
     notifee.getInitialNotification().then(initialNotification => {
       if (initialNotification?.notification.data) {
         const chapter = Number(initialNotification.notification.data.chapter);
         const verse = Number(initialNotification.notification.data.verse);
         if (chapter) {
           if (navigationRef.isReady()) {
-            navigationRef.navigate('Home', {chapter, verse});
+            dispatchNotifPress(chapter, verse);
           } else {
             pendingNav.current = {chapter, verse};
           }
@@ -76,7 +85,7 @@ export default function App() {
               if (pendingNav.current) {
                 const {chapter, verse} = pendingNav.current;
                 pendingNav.current = null;
-                navigationRef.navigate('Home', {chapter, verse});
+                DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {chapter, verse} as NotifPressPayload);
               }
             }}>
             <Stack.Navigator screenOptions={{headerShown: false}}>

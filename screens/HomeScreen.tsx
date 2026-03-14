@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
+import {DeviceEventEmitter, ScrollView, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -9,6 +9,7 @@ import Navigation from '../components/Navigation';
 import ChapterScreen from './ChapterScreen';
 import ChapterVerseScreen from './ChapterVerseScreen';
 import type {RootStackParamList} from '../App';
+import {NOTIF_PRESS_EVENT, type NotifPressPayload} from '../notificationEvents';
 import {checkAndUpdateStreak} from '../services/streakService';
 import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
@@ -61,15 +62,22 @@ export default function HomeScreen() {
     isFavorite(chapter).then(setIsFav).catch(() => {});
   }, [chapter]);
 
-  // React to notification navigation updates (app already open)
+  // React to notification taps (foreground, background, and cold-start cases).
+  // DeviceEventEmitter is used instead of route.params so updates are always
+  // applied even when Home is already the active screen (navigate to the same
+  // screen can be a no-op in React Navigation's native stack navigator).
   useEffect(() => {
-    if (route.params?.chapter) {
-      setChapter(route.params.chapter);
-      setHighlightVerse(route.params.verse ?? 0);
-      setSubScreen('verse');
-      scrollRef.current?.scrollTo({y: 0, animated: false});
-    }
-  }, [route.params?.chapter, route.params?.verse]);
+    const sub = DeviceEventEmitter.addListener(
+      NOTIF_PRESS_EVENT,
+      ({chapter: notifChapter, verse: notifVerse}: NotifPressPayload) => {
+        setChapter(notifChapter);
+        setHighlightVerse(notifVerse);
+        setSubScreen('verse');
+        scrollRef.current?.scrollTo({y: 0, animated: false});
+      },
+    );
+    return () => sub.remove();
+  }, []);
 
   const scrollTop = () => scrollRef.current?.scrollTo({y: 0, animated: false});
 

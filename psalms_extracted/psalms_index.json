@@ -1,0 +1,569 @@
+[
+  {
+    "module": "afri",
+    "name": "Afrikaans 1953",
+    "year": "1953",
+    "lang": "Afrikanns",
+    "lang_short": "af"
+  },
+  {
+    "module": "albanian",
+    "name": "Albanian",
+    "year": "",
+    "lang": "",
+    "lang_short": "sq"
+  },
+  {
+    "module": "almeida_ra",
+    "name": "Tradução de João Ferreira de Almeida (Versão Revista e Atualizada)",
+    "year": "",
+    "lang": "",
+    "lang_short": "pt"
+  },
+  {
+    "module": "almeida_rc",
+    "name": "Tradução de João Ferreira de Almeida Revista e Corrigida.",
+    "year": "",
+    "lang": "",
+    "lang_short": "pt"
+  },
+  {
+    "module": "asv",
+    "name": "American Standard Version",
+    "year": "1901",
+    "lang": "",
+    "lang_short": "en"
+  },
+  {
+    "module": "asvs",
+    "name": "American Standard Version w Strong's",
+    "year": "1901",
+    "lang": "",
+    "lang_short": "en"
+  },
+  {
+    "module": "bishops",
+    "name": "Bishops Bible",
+    "year": "1568",
+    "lang": "English",
+    "lang_short": "en"
+  },
+  {
+    "module": "bkr",
+    "name": "Bible Kralicka",
+    "year": "",
+    "lang": "Czech",
+    "lang_short": "cs"
+  },
+  {
+    "module": "blivre",
+    "name": "Biblia Livre",
+    "year": "",
+    "lang": "Portuguese",
+    "lang_short": "pt"
+  },
+  {
+    "module": "bn_irv",
+    "name": "ইন্ডিয়ান রিভাইজড ভার্সন (IRV) - বেঙ্গলী ",
+    "year": "2018",
+    "lang": null,
+    "lang_short": "bn"
+  },
+  {
+    "module": "bo_ntb",
+    "name": "དམ་པའི་གསུང་རབ་བོད་འགྱུར་གསར་མ།",
+    "year": "2016 - 2023",
+    "lang": null,
+    "lang_short": "bo"
+  },
+  {
+    "module": "bungo",
+    "name": "Bungo-yaku: Taisho-kaiyaku (NT) (1950), Meiji-yaku (OT) (1953)",
+    "year": "1950/1953",
+    "lang": "",
+    "lang_short": "ja"
+  },
+  {
+    "module": "cadman",
+    "name": "Vietnamese Cadman",
+    "year": "1934",
+    "lang": "Vietnamese",
+    "lang_short": "vi"
+  },
+  {
+    "module": "chinese_union_simp",
+    "name": "Chinese Union (Simplified)",
+    "year": "",
+    "lang": "Chinese",
+    "lang_short": "zh"
+  },
+  {
+    "module": "chinese_union_simp_s",
+    "name": "Chinese Union Version 和合本 - Simplified with Strong's numbers 简体中文版连史特朗经文滙篇",
+    "year": "",
+    "lang": "",
+    "lang_short": "zh"
+  },
+  {
+    "module": "chinese_union_trad",
+    "name": "Chinese Union (Traditional)",
+    "year": "",
+    "lang": "Chinese",
+    "lang_short": "zh"
+  },
+  {
+    "module": "chinese_union_trad_s",
+    "name": "Chinese Union Version 和合本 - Traditional with Strong's numbers 繁體中文版連史特朗經文滙篇",
+    "year": "",
+    "lang": "",
+    "lang_short": "zh"
+  },
+  {
+    "module": "ckjv_sds",
+    "name": "中文英皇钦定本上帝版 Chinese KJV (Simplified) Shang-Di 简体中文",
+    "year": "",
+    "lang": "",
+    "lang_short": "zh"
+  },
+  {
+    "module": "ckjv_sdt",
+    "name": "中文英皇欽定本上帝版 Chinese KJV (Traditional) Shang-Di 繁體中文",
+    "year": "",
+    "lang": "",
+    "lang_short": "zh"
+  },
+  {
+    "module": "cornilescu",
+    "name": "Cornilescu",
+    "year": "",
+    "lang": "Romanian",
+    "lang_short": "ro"
+  },
+  {
+    "module": "coverdale",
+    "name": "Coverdale Bible",
+    "year": "1535",
+    "lang": "English",
+    "lang_short": "en"
+  },
+  {
+    "module": "diodati",
+    "name": "Diodati",
+    "year": "1649",
+    "lang": "Italian",
+    "lang_short": "it"
+  },
+  {
+    "module": "elberfelder_1871",
+    "name": "Elberfelder (1871)",
+    "year": "1871",
+    "lang": null,
+    "lang_short": "de"
+  },
+  {
+    "module": "elberfelder_1905",
+    "name": "Elberfelder (1905)",
+    "year": "1905",
+    "lang": null,
+    "lang_short": "de"
+  },
+  {
+    "module": "epee",
+    "name": "La Bible de l'Épée",
+    "year": "2005",
+    "lang": "French",
+    "lang_short": "fr"
+  },
+  {
+    "module": "fidela",
+    "name": "Fidela Biblia în limba română",
+    "year": "2011-2016",
+    "lang": "",
+    "lang_short": "ro"
+  },
+  {
+    "module": "finn",
+    "name": "Finnish 1776 (Finnish)",
+    "year": "1776",
+    "lang": "Finnish",
+    "lang_short": "fi"
+  },
+  {
+    "module": "geneva",
+    "name": "Geneva Bible",
+    "year": "1587",
+    "lang": "English",
+    "lang_short": "en"
+  },
+  {
+    "module": "gu_irv",
+    "name": "ઇન્ડિયન રીવાઇઝ્ડ વર્ઝન (IRV) ગુજરાતી",
+    "year": "2019",
+    "lang": null,
+    "lang_short": "gu"
+  },
+  {
+    "module": "ha_con",
+    "name": "Biblica® Buɗaɗɗen Littafi Mai Tsarki, Sabon Rai Don Kowa™",
+    "year": "2020",
+    "lang": null,
+    "lang_short": "ha"
+  },
+  {
+    "module": "hcv",
+    "name": "Haitian Creole Version ",
+    "year": "",
+    "lang": null,
+    "lang_short": "ht"
+  },
+  {
+    "module": "he_modern",
+    "name": "תנ ך עברי מודרני",
+    "year": "19th Century",
+    "lang": null,
+    "lang_short": "he"
+  },
+  {
+    "module": "indo_tb",
+    "name": "Terjemahan Baru",
+    "year": "1994",
+    "lang": "Indonesian",
+    "lang_short": "id"
+  },
+  {
+    "module": "indo_tm",
+    "name": "Terjemahan Lama",
+    "year": "1954 / 1965",
+    "lang": "Indonesian",
+    "lang_short": "id"
+  },
+  {
+    "module": "irv",
+    "name": "इंडियन रिवाइज्ड वर्जन (IRV) ",
+    "year": "2017, 2018, 2019",
+    "lang": "Hindi",
+    "lang_short": "hi"
+  },
+  {
+    "module": "karoli",
+    "name": "Karoli",
+    "year": "",
+    "lang": "Hungarian",
+    "lang_short": "hu"
+  },
+  {
+    "module": "kjv",
+    "name": "Authorized King James Version",
+    "year": "1611 / 1769",
+    "lang": "English",
+    "lang_short": "en"
+  },
+  {
+    "module": "kjv_strongs",
+    "name": "KJV with Strongs",
+    "year": "1611 / 1769",
+    "lang": "English",
+    "lang_short": "en"
+  },
+  {
+    "module": "kn_irv",
+    "name": "ಇಂಡಿಯನ್ ರಿವೈಜ್ಡ್ ವರ್ಸನ್ (IRV) - ಕನ್ನಡ",
+    "year": "2017, 2019",
+    "lang": null,
+    "lang_short": "kn"
+  },
+  {
+    "module": "kn_kjv",
+    "name": "Kannada KJV",
+    "year": "1969",
+    "lang": null,
+    "lang_short": "kn"
+  },
+  {
+    "module": "korean",
+    "name": "Korean",
+    "year": "",
+    "lang": "",
+    "lang_short": "ko"
+  },
+  {
+    "module": "kougo",
+    "name": "Kougo-yaku",
+    "year": "1954/1955",
+    "lang": "",
+    "lang_short": "ja"
+  },
+  {
+    "module": "lt_heritage",
+    "name": "Tikinčiųjų Paveldo Vertimas",
+    "year": "2022-2024",
+    "lang": null,
+    "lang_short": "lt"
+  },
+  {
+    "module": "luther",
+    "name": "Luther Bible (1545)",
+    "year": "1545",
+    "lang": "German",
+    "lang_short": "de"
+  },
+  {
+    "module": "luther_1912",
+    "name": "Luther Bible (1912)",
+    "year": "1912",
+    "lang": null,
+    "lang_short": "de"
+  },
+  {
+    "module": "lv_gluck_8",
+    "name": "Glück 8th edition",
+    "year": "",
+    "lang": null,
+    "lang_short": "lv"
+  },
+  {
+    "module": "mal1910",
+    "name": "Sathyavedapusthakam",
+    "year": "1910",
+    "lang": "Malayalam",
+    "lang_short": "ml"
+  },
+  {
+    "module": "maori",
+    "name": "Maori Bible",
+    "year": "",
+    "lang": "Maori",
+    "lang_short": "mi"
+  },
+  {
+    "module": "martin",
+    "name": "Martin",
+    "year": "1744",
+    "lang": "French",
+    "lang_short": "fr"
+  },
+  {
+    "module": "mr_irv",
+    "name": "इंडियन रीवाइज्ड वर्जन (IRV) - मराठी",
+    "year": "2017, 2019",
+    "lang": null,
+    "lang_short": "mr"
+  },
+  {
+    "module": "my_judson",
+    "name": "မြန်မာကျမ်းစာ Judson 1840",
+    "year": "1840",
+    "lang": null,
+    "lang_short": "my"
+  },
+  {
+    "module": "ne_ulb",
+    "name": "अनलक शाब्दिक बाइबल",
+    "year": "2019",
+    "lang": null,
+    "lang_short": "ne"
+  },
+  {
+    "module": "net",
+    "name": "NET Bible®",
+    "year": "1996-2016",
+    "lang": null,
+    "lang_short": "en"
+  },
+  {
+    "module": "opt",
+    "name": "Old Persian Translation",
+    "year": "1895",
+    "lang": "",
+    "lang_short": "fa"
+  },
+  {
+    "module": "oster",
+    "name": "Ostervald",
+    "year": "1996",
+    "lang": "French",
+    "lang_short": "fr"
+  },
+  {
+    "module": "pa_irv",
+    "name": "ਇੰਡਿਅਨ ਰਿਵਾਇਜ਼ਡ ਵਰਜ਼ਨ (IRV) - ਪੰਜਾਬੀ",
+    "year": "2017, 2019",
+    "lang": null,
+    "lang_short": "pa"
+  },
+  {
+    "module": "pol_nbg",
+    "name": "NOWEJ BIBLII GDANSKIEJ",
+    "year": "2012",
+    "lang": "",
+    "lang_short": "pl"
+  },
+  {
+    "module": "pol_ubg",
+    "name": "Uwspółcześniona Biblia Gdańska",
+    "year": "2017",
+    "lang": "",
+    "lang_short": "pl"
+  },
+  {
+    "module": "polbg",
+    "name": "Polska Biblia Gdanska",
+    "year": "1881",
+    "lang": "",
+    "lang_short": "pl"
+  },
+  {
+    "module": "rv_1909",
+    "name": "Reina Valera 1909",
+    "year": "1909",
+    "lang": "Spanish",
+    "lang_short": "es"
+  },
+  {
+    "module": "rv_1909_strongs",
+    "name": "Reina-Valera 1909 w/Strong's",
+    "year": "1909",
+    "lang": "",
+    "lang_short": "es"
+  },
+  {
+    "module": "rvg",
+    "name": "Reina Valera Gómez",
+    "year": "2010",
+    "lang": "Spanish",
+    "lang_short": "es"
+  },
+  {
+    "module": "rvg_2004",
+    "name": "Reina Valera Gómez (2004)",
+    "year": "2004",
+    "lang": "Spanish",
+    "lang_short": "es"
+  },
+  {
+    "module": "sagradas",
+    "name": "Sagradas Escrituras",
+    "year": "1569",
+    "lang": "Spanish",
+    "lang_short": "es"
+  },
+  {
+    "module": "schlachter",
+    "name": "Schlachter Bibel",
+    "year": "1951",
+    "lang": null,
+    "lang_short": "de"
+  },
+  {
+    "module": "segond_1910",
+    "name": "Louis Segond 1910",
+    "year": "1910",
+    "lang": "",
+    "lang_short": "fr"
+  },
+  {
+    "module": "so_jimale",
+    "name": "Kitaabka Quduuska Ah Adan Jim'ale",
+    "year": "1979, 2008",
+    "lang": null,
+    "lang_short": "so"
+  },
+  {
+    "module": "stve",
+    "name": "Staten Vertaling",
+    "year": "",
+    "lang": "Dutch",
+    "lang_short": "nl"
+  },
+  {
+    "module": "svd",
+    "name": "Smith Van Dyke",
+    "year": "1865",
+    "lang": "Arabic",
+    "lang_short": "ar"
+  },
+  {
+    "module": "synodal",
+    "name": "Synodal",
+    "year": "1876",
+    "lang": "Russian",
+    "lang_short": "ru"
+  },
+  {
+    "module": "ta_irv",
+    "name": "இண்டியன் ரிவைஸ்டு வெர்ஸன்",
+    "year": "2017, 2019",
+    "lang": null,
+    "lang_short": "ta"
+  },
+  {
+    "module": "ta_oitce",
+    "name": "திறந்தநிலை தமிழ் சமகால பதிப்பு",
+    "year": "2005, 2020, 2022",
+    "lang": null,
+    "lang_short": "ta"
+  },
+  {
+    "module": "tagab",
+    "name": "Tagalog Ang Biblia",
+    "year": "1905",
+    "lang": "",
+    "lang_short": "tl"
+  },
+  {
+    "module": "te_irv",
+    "name": "ఇండియన్ రివైజ్డ్ వెర్షన్ (IRV) - తెలుగు",
+    "year": "2017, 2019",
+    "lang": null,
+    "lang_short": "te"
+  },
+  {
+    "module": "thaikjv",
+    "name": "Thai KJV",
+    "year": "2006",
+    "lang": "Thai",
+    "lang_short": "th"
+  },
+  {
+    "module": "turkish",
+    "name": "Turkish",
+    "year": "",
+    "lang": "",
+    "lang_short": "tr"
+  },
+  {
+    "module": "ug_ara",
+    "name": "مۇقېددېس‭ ‬كالام (‭‬يەنگى‭ ‬يېزىق‭ ‬ )",
+    "year": "2010",
+    "lang": null,
+    "lang_short": "ug"
+  },
+  {
+    "module": "ur_geo",
+    "name": "کتابِ مقدّس",
+    "year": "2019",
+    "lang": null,
+    "lang_short": "ur"
+  },
+  {
+    "module": "web",
+    "name": "World English Bible",
+    "year": "2006",
+    "lang": "English",
+    "lang_short": "en"
+  },
+  {
+    "module": "wlc",
+    "name": "WLC",
+    "year": "",
+    "lang": "Hebrew",
+    "lang_short": "he"
+  },
+  {
+    "module": "wo_kyg",
+    "name": "Kàddug Yàlla gi",
+    "year": "2010, 2020",
+    "lang": null,
+    "lang_short": "wo"
+  }
+]

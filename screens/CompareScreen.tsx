@@ -5,11 +5,15 @@ import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native'
 import {useTranslation} from 'react-i18next';
 import {spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
-import {getChapter} from '../services/psalmsService';
+import {getChapter, getAllVersions} from '../services/psalmsService';
+import {useAppSettings} from '../context/AppSettingsContext';
 import type {RootStackParamList} from '../App';
 import {M3Card, M3Divider, M3IconButton} from '../components/M3';
 
 type CompareRoute = RouteProp<RootStackParamList, 'Compare'>;
+
+// Fallback comparison versions (always included, deduplicated below)
+const COMPARE_FALLBACKS = ['kjv', 'asv', 'web'];
 
 export default function CompareScreen() {
   const navigation = useNavigation();
@@ -17,24 +21,31 @@ export default function CompareScreen() {
   const {chapter, verse} = route.params;
   const {t} = useTranslation();
   const {colors, type, fontSize, isDark} = useTheme();
+  const {bibleVersion} = useAppSettings();
 
-  const modernVerse = useMemo(() => {
-    const verses = getChapter(chapter, 'modern');
-    return verses[verse - 1] ?? '';
-  }, [chapter, verse]);
-
-  const kjvVerse = useMemo(() => {
-    const verses = getChapter(chapter, 'kjv');
-    return verses[verse - 1] ?? '';
-  }, [chapter, verse]);
+  // Build a deduplicated list: current version first, then fallbacks
+  const compareVersions = useMemo(() => {
+    const allMeta = getAllVersions();
+    const getName = (mod: string) =>
+      allMeta.find(v => v.module === mod)?.name ?? mod;
+    const seen = new Set<string>();
+    const result: {module: string; label: string}[] = [];
+    for (const mod of [bibleVersion, ...COMPARE_FALLBACKS]) {
+      if (!seen.has(mod)) {
+        seen.add(mod);
+        result.push({module: mod, label: getName(mod)});
+      }
+      if (result.length >= 3) break;
+    }
+    return result;
+  }, [bibleVersion]);
 
   const VerseCard = ({label, text}: {label: string; text: string}) => (
     <M3Card variant="elevated" style={styles.card}>
-      {/* Accent bar + label row */}
       <View style={styles.cardHeader}>
         <View style={[styles.accent, {backgroundColor: colors.primaryContainer}]} />
         <Text style={[type.labelLarge, {color: colors.primary, letterSpacing: 1.5}]}>
-          {label}
+          {label.toUpperCase()}
         </Text>
       </View>
       <Text
@@ -46,7 +57,7 @@ export default function CompareScreen() {
           letterSpacing: 0.5,
           marginTop: spacing.sm,
         }}>
-        {text}
+        {text || '—'}
       </Text>
     </M3Card>
   );
@@ -76,16 +87,22 @@ export default function CompareScreen() {
       </View>
 
       <ScrollView contentContainerStyle={styles.body}>
-        <VerseCard label="MODERN" text={modernVerse} />
-
-        {/* Divider with icon */}
-        <View style={styles.dividerRow}>
-          <M3Divider style={styles.dividerLine} />
-          <Icons name="compare" size={22} color={colors.onSurfaceVariant} />
-          <M3Divider style={styles.dividerLine} />
-        </View>
-
-        <VerseCard label="KJV" text={kjvVerse} />
+        {compareVersions.map((v, i) => {
+          const verses = getChapter(chapter, v.module);
+          const text = verses[verse - 1] ?? '';
+          return (
+            <React.Fragment key={v.module}>
+              <VerseCard label={v.label} text={text} />
+              {i < compareVersions.length - 1 && (
+                <View style={styles.dividerRow}>
+                  <M3Divider style={styles.dividerLine} />
+                  <Icons name="compare" size={22} color={colors.onSurfaceVariant} />
+                  <M3Divider style={styles.dividerLine} />
+                </View>
+              )}
+            </React.Fragment>
+          );
+        })}
       </ScrollView>
     </SafeAreaView>
   );

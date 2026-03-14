@@ -8,8 +8,6 @@
   "themeLight": "വെളിച്ചം",
   "themeDark": "ഇരുട്ട്",
   "bibleVersion": "ബൈബിൾ പതിപ്പ്",
-  "bibleModern": "ആധുനിക",
-  "bibleKjv": "KJV",
   "language": "ഭാഷ",
   "languageAuto": "സ്വയംചാലകം ({{lang}})",
   "selectPsalm": "ഒരു സ്തോത്രം തിരഞ്ഞെടുക്കുക",

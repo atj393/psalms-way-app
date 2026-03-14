@@ -1,15 +1,10 @@
-import psalmsModern from '../psalms-en.json';
-import psalmsKjv from '../psalms-en-kjv.json';
-import type {BibleVersion} from '../context/AppSettingsContext';
+import {getPsalmsData, getAllVersions, type PsalmMetadata} from './psalmsModules';
 
-// Both JSON files are arrays of 150 chapters, each chapter is a string[]
-const datasets: Record<BibleVersion, string[][]> = {
-  modern: psalmsModern as string[][],
-  kjv: psalmsKjv as string[][],
-};
+export {getAllVersions};
+export type {PsalmMetadata};
 
-export function getChapter(chapter: number, version: BibleVersion = 'modern'): string[] {
-  const data = datasets[version];
+export function getChapter(chapter: number, version: string = 'modern'): string[] {
+  const data = getPsalmsData(version);
   if (chapter < 1 || chapter > data.length) return [];
   return data[chapter - 1] ?? [];
 }
@@ -17,7 +12,7 @@ export function getChapter(chapter: number, version: BibleVersion = 'modern'): s
 export function getVerse(
   chapter: number,
   verseNumber: number,
-  version: BibleVersion = 'modern',
+  version: string = 'modern',
 ): {verse: string; verseNumber: number} | null {
   const verses = getChapter(chapter, version);
   if (verseNumber < 1 || verseNumber > verses.length) return null;
@@ -26,7 +21,7 @@ export function getVerse(
 
 export function getRandomVerse(
   chapter: number,
-  version: BibleVersion = 'modern',
+  version: string = 'modern',
 ): {verse: string; verseNumber: number} | null {
   const verses = getChapter(chapter, version);
   if (verses.length === 0) return null;

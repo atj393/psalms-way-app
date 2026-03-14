@@ -5,7 +5,7 @@ import i18n, {getDeviceLanguage} from '../i18n';
 
 const STORAGE_KEY = 'appSettings';
 
-export type BibleVersion = 'modern' | 'kjv';
+export type BibleVersion = string;
 export type AppLanguage = 'en' | 'de' | 'fr' | 'es' | 'hi' | 'ta' | 'te' | 'kn' | 'ml';
 
 type AppSettings = {

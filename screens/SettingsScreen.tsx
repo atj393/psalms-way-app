@@ -16,7 +16,13 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { shape, spacing, useTheme, type ThemeMode } from '../theme';
-import { useAppSettings, type BibleVersion, type AppLanguage } from '../context/AppSettingsContext';
+import { useAppSettings, type AppLanguage } from '../context/AppSettingsContext';
+import { getAllVersions, type PsalmMetadata } from '../services/psalmsService';
+
+const ALL_VERSIONS: PsalmMetadata[] = getAllVersions();
+function getVersionLabel(module: string): string {
+    return ALL_VERSIONS.find(v => v.module === module)?.name ?? module;
+}
 import Icons from '../components/Icons';
 import i18n, { getDeviceLanguage } from '../i18n';
 import {
@@ -25,6 +31,7 @@ import {
     cancelDailyNotification,
 } from '../services/notificationService';
 import { M3Card, M3Divider, M3IconButton, M3Pressable, M3SegmentedButton, M3TextButton } from '../components/M3';
+// M3SegmentedButton still used for TEXT SIZE and THEME sections
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -38,11 +45,6 @@ const THEME_MODES: { label: string; value: ThemeMode; a11y: string }[] = [
     { label: 'Auto', value: 'auto', a11y: 'Follow system theme' },
     { label: 'Light', value: 'light', a11y: 'Light theme' },
     { label: 'Dark', value: 'dark', a11y: 'Dark theme' },
-];
-
-const BIBLE_VERSIONS: { label: string; value: BibleVersion; a11y: string }[] = [
-    { label: 'Modern', value: 'modern', a11y: 'Modern English' },
-    { label: 'KJV', value: 'kjv', a11y: 'King James Version' },
 ];
 
 type LangOption = { label: string; value: AppLanguage | 'auto' };
@@ -94,6 +96,7 @@ export default function SettingsScreen() {
 
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [langModalVisible, setLangModalVisible] = useState(false);
+    const [bibleModalVisible, setBibleModalVisible] = useState(false);
 
     const handleSetLanguage = (lang: AppLanguage | 'auto') => {
         setLanguage(lang);
@@ -197,16 +200,21 @@ export default function SettingsScreen() {
 
                 {/* BIBLE VERSION */}
                 <SectionLabel label={t('bibleVersion')} />
-                <M3Card variant="filled" style={styles.sectionCard}>
-                    <M3SegmentedButton
-                        options={BIBLE_VERSIONS.map(opt => ({
-                            label: opt.label,
-                            value: opt.value,
-                            a11y: opt.a11y,
-                        }))}
-                        value={bibleVersion}
-                        onChange={v => setBibleVersion(v as BibleVersion)}
-                    />
+                <M3Card variant="filled" style={styles.notifCard}>
+                    <TouchableOpacity
+                        style={styles.settingsRow}
+                        onPress={() => setBibleModalVisible(true)}
+                        accessibilityLabel="Select bible version">
+                        <View style={styles.settingsRowLeft}>
+                            <Text style={[type.titleSmall, { color: colors.onSurface }]}>{t('bibleVersion')}</Text>
+                        </View>
+                        <View style={styles.settingsRowRight}>
+                            <Text style={[type.labelLarge, { color: colors.primary }]}>
+                                {getVersionLabel(bibleVersion)}
+                            </Text>
+                            <Icons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
+                        </View>
+                    </TouchableOpacity>
                 </M3Card>
 
                 {/* LANGUAGE */}
@@ -282,6 +290,79 @@ export default function SettingsScreen() {
                     />
                 )}
             </ScrollView>
+
+            {/* ─── Bible version picker modal ────────────────────────────────── */}
+            <Modal
+                visible={bibleModalVisible}
+                transparent
+                animationType="slide"
+                onRequestClose={() => setBibleModalVisible(false)}>
+                <TouchableOpacity
+                    style={[styles.modalBackdrop, { backgroundColor: colors.scrim + '99' }]}
+                    activeOpacity={1}
+                    onPress={() => setBibleModalVisible(false)}
+                />
+                <View
+                    style={[
+                        styles.modalSheet,
+                        {
+                            backgroundColor: colors.surface,
+                            borderTopLeftRadius: shape.extraLarge,
+                            borderTopRightRadius: shape.extraLarge,
+                        },
+                    ]}>
+                    <View style={styles.modalHandle} />
+                    <Text style={[type.titleMedium, styles.modalTitle, { color: colors.onSurface }]}>
+                        {t('bibleVersion')}
+                    </Text>
+                    <M3Divider />
+                    <FlatList
+                        data={ALL_VERSIONS}
+                        keyExtractor={item => item.module}
+                        style={styles.modalList}
+                        renderItem={({ item }: { item: PsalmMetadata }) => {
+                            const isSelected = bibleVersion === item.module;
+                            return (
+                                <M3Pressable
+                                    onPress={() => {
+                                        setBibleVersion(item.module);
+                                        setBibleModalVisible(false);
+                                    }}
+                                    style={[
+                                        styles.langRow,
+                                        {
+                                            backgroundColor: isSelected
+                                                ? colors.secondaryContainer
+                                                : 'transparent',
+                                        },
+                                    ]}>
+                                    <View style={{ flex: 1 }}>
+                                        <Text
+                                            style={[
+                                                type.bodyLarge,
+                                                { color: isSelected ? colors.onSecondaryContainer : colors.onSurface },
+                                            ]}>
+                                            {item.name}
+                                        </Text>
+                                        {item.lang ? (
+                                            <Text style={[type.bodySmall, { color: colors.onSurfaceVariant }]}>
+                                                {item.lang}{item.year ? ` · ${item.year}` : ''}
+                                            </Text>
+                                        ) : null}
+                                    </View>
+                                    {isSelected && (
+                                        <Icons name="check" size={20} color={colors.primary} />
+                                    )}
+                                </M3Pressable>
+                            );
+                        }}
+                    />
+                    <M3Divider />
+                    <View style={styles.modalFooter}>
+                        <M3TextButton label={t('close')} onPress={() => setBibleModalVisible(false)} />
+                    </View>
+                </View>
+            </Modal>
 
             {/* ─── Language picker modal ─────────────────────────────────────── */}
             <Modal
