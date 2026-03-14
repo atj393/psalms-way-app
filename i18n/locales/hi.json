@@ -8,8 +8,6 @@
   "themeLight": "हल्का",
   "themeDark": "गहरा",
   "bibleVersion": "बाइबिल संस्करण",
-  "bibleModern": "आधुनिक",
-  "bibleKjv": "KJV",
   "language": "भाषा",
   "languageAuto": "स्वचालित ({{lang}})",
   "selectPsalm": "एक भजन चुनें",

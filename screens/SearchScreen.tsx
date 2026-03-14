@@ -18,7 +18,7 @@ import {M3Divider, M3Pressable} from '../components/M3';
 
 type Result = {chapter: number; verse: number; text: string};
 
-function buildIndex(version: 'modern' | 'kjv'): Result[] {
+function buildIndex(version: string): Result[] {
   const all: Result[] = [];
   for (let ch = 1; ch <= 150; ch++) {
     const verses = getChapter(ch, version);
