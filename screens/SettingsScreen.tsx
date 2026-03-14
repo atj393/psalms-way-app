@@ -35,16 +35,16 @@ import { M3Card, M3Divider, M3IconButton, M3Pressable, M3SegmentedButton, M3Text
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
-const FONT_SIZES: { label: string; size: number; a11y: string }[] = [
-    { label: 'A', size: 16, a11y: 'Small text' },
-    { label: 'A', size: 20, a11y: 'Medium text' },
-    { label: 'A', size: 24, a11y: 'Large text' },
+const FONT_SIZE_DEFS: { label: string; size: number; a11yKey: string }[] = [
+    { label: 'A', size: 16, a11yKey: 'a11yTextSizeSmall' },
+    { label: 'A', size: 20, a11yKey: 'a11yTextSizeMedium' },
+    { label: 'A', size: 24, a11yKey: 'a11yTextSizeLarge' },
 ];
 
-const THEME_MODES: { label: string; value: ThemeMode; a11y: string }[] = [
-    { label: 'Auto', value: 'auto', a11y: 'Follow system theme' },
-    { label: 'Light', value: 'light', a11y: 'Light theme' },
-    { label: 'Dark', value: 'dark', a11y: 'Dark theme' },
+const THEME_MODE_DEFS: { label: string; value: ThemeMode; a11yKey: string }[] = [
+    { label: 'Auto', value: 'auto', a11yKey: 'a11yThemeAuto' },
+    { label: 'Light', value: 'light', a11yKey: 'a11yThemeLight' },
+    { label: 'Dark', value: 'dark', a11yKey: 'a11yThemeDark' },
 ];
 
 type LangOption = { label: string; value: AppLanguage | 'auto' };
@@ -65,10 +65,10 @@ function getLangLabel(value: AppLanguage | 'auto'): string {
     return LANGUAGES.find(l => l.value === value)?.label ?? 'Auto (device)';
 }
 
-function formatTime(hour: number, minute: number): string {
+function formatTime(hour: number, minute: number, t: (key: string) => string): string {
     const h = hour % 12 || 12;
     const m = String(minute).padStart(2, '0');
-    const ampm = hour < 12 ? 'AM' : 'PM';
+    const ampm = hour < 12 ? t('am') : t('pm');
     return `${h}:${m} ${ampm}`;
 }
 
@@ -110,8 +110,8 @@ export default function SettingsScreen() {
             const granted = await requestNotificationPermission();
             if (!granted) {
                 Alert.alert(
-                    'Permission required',
-                    'Please allow notifications for Psalms Way in your device settings.',
+                    t('notifPermRequired'),
+                    t('notifPermMessage'),
                 );
                 return;
             }
@@ -163,7 +163,7 @@ export default function SettingsScreen() {
                 </View>
                 <M3IconButton
                     onPress={() => navigation.goBack()}
-                    accessibilityLabel="Close settings">
+                    accessibilityLabel={t('a11yCloseSettings')}>
                     <Icons name="close" size={22} color={colors.onSurfaceVariant} />
                 </M3IconButton>
             </View>
@@ -174,10 +174,10 @@ export default function SettingsScreen() {
                 <SectionLabel label={t('textSize')} />
                 <M3Card variant="filled" style={styles.sectionCard}>
                     <M3SegmentedButton
-                        options={FONT_SIZES.map(opt => ({
+                        options={FONT_SIZE_DEFS.map(opt => ({
                             label: opt.label,
                             value: String(opt.size),
-                            a11y: opt.a11y,
+                            a11y: t(opt.a11yKey),
                         }))}
                         value={String(fontSize)}
                         onChange={v => setFontSize(Number(v))}
@@ -188,10 +188,10 @@ export default function SettingsScreen() {
                 <SectionLabel label={t('theme')} />
                 <M3Card variant="filled" style={styles.sectionCard}>
                     <M3SegmentedButton
-                        options={THEME_MODES.map(opt => ({
+                        options={THEME_MODE_DEFS.map(opt => ({
                             label: opt.label,
                             value: opt.value,
-                            a11y: opt.a11y,
+                            a11y: t(opt.a11yKey),
                         }))}
                         value={themeMode}
                         onChange={v => setThemeMode(v as ThemeMode)}
@@ -204,7 +204,7 @@ export default function SettingsScreen() {
                     <TouchableOpacity
                         style={styles.settingsRow}
                         onPress={() => setBibleModalVisible(true)}
-                        accessibilityLabel="Select bible version">
+                        accessibilityLabel={t('a11ySelectBibleVersion')}>
                         <View style={styles.settingsRowLeft}>
                             <Text style={[type.titleSmall, { color: colors.onSurface }]}>{t('bibleVersion')}</Text>
                         </View>
@@ -223,7 +223,7 @@ export default function SettingsScreen() {
                     <TouchableOpacity
                         style={styles.settingsRow}
                         onPress={() => setLangModalVisible(true)}
-                        accessibilityLabel="Select language">
+                        accessibilityLabel={t('a11ySelectLanguage')}>
                         <View style={styles.settingsRowLeft}>
                             <Text style={[type.titleSmall, { color: colors.onSurface }]}>{t('language')}</Text>
                             <Text style={[type.bodySmall, { color: colors.onSurfaceVariant }]}>
@@ -265,13 +265,13 @@ export default function SettingsScreen() {
                             <TouchableOpacity
                                 style={styles.settingsRow}
                                 onPress={() => setShowTimePicker(true)}
-                                accessibilityLabel="Change notification time">
+                                accessibilityLabel={t('a11yChangeNotifTime')}>
                                 <View style={styles.settingsRowLeft}>
                                     <Text style={[type.titleSmall, { color: colors.onSurface }]}>
                                         {t('reminderTime')}
                                     </Text>
                                     <Text style={[type.bodyMedium, { color: colors.primary }]}>
-                                        {t('everyDayAt', {time: formatTime(notificationHour, notificationMinute)})}
+                                        {t('everyDayAt', {time: formatTime(notificationHour, notificationMinute, t)})}
                                     </Text>
                                 </View>
                                 <Icons name="chevron-right" size={20} color={colors.onSurfaceVariant} />

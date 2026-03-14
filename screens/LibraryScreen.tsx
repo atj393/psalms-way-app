@@ -71,7 +71,7 @@ export default function LibraryScreen() {
                 onPress={() => handleSelect(item.chapter)}>
                 <Icons name="bookmark" size={18} color={colors.primary} />
                 <Text style={[type.bodyLarge, styles.listItemText, {color: colors.onSurface}]}>
-                  Psalm {item.chapter}:{item.verse}
+                  {t('psalmSubtitle', {chapter: item.chapter, verse: item.verse})}
                 </Text>
                 <Icons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
               </M3Pressable>
@@ -94,7 +94,7 @@ export default function LibraryScreen() {
                 onPress={() => handleSelect(item)}>
                 <Icons name="star" size={18} color={colors.primary} />
                 <Text style={[type.bodyLarge, styles.listItemText, {color: colors.onSurface}]}>
-                  Psalm {item}
+                  {t('psalmTitle', {chapter: item})}
                 </Text>
                 <Icons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
               </M3Pressable>
@@ -118,7 +118,7 @@ export default function LibraryScreen() {
                 <Icons name="history" size={18} color={colors.primary} />
                 <View style={styles.listItemBody}>
                   <Text style={[type.bodyLarge, {color: colors.onSurface}]}>
-                    Psalm {item.chapter}
+                    {t('psalmTitle', {chapter: item.chapter})}
                   </Text>
                   <Text style={[type.bodySmall, {color: colors.onSurfaceVariant}]}>
                     {new Date(item.date).toLocaleDateString()}
@@ -146,7 +146,7 @@ export default function LibraryScreen() {
                     type.labelLarge,
                     {color: colors.primary, letterSpacing: 1},
                   ]}>
-                  PSALM {item.chapter}:{item.verse}
+                  {t('psalmRef', {chapter: item.chapter, verse: item.verse})}
                 </Text>
                 <Text
                   style={[type.bodyMedium, {color: colors.onSurface}]}
@@ -187,7 +187,7 @@ export default function LibraryScreen() {
         </Text>
         <M3IconButton
           onPress={() => navigation.goBack()}
-          accessibilityLabel="Close library">
+          accessibilityLabel={t('a11yCloseLibrary')}>
           <Icons name="close" size={22} color={colors.onSurfaceVariant} />
         </M3IconButton>
       </View>

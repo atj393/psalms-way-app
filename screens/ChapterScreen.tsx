@@ -248,7 +248,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
 
                     {/* Title */}
                     <Text style={[type.titleMedium, styles.sheetTitle, { color: colors.onSurface }]}>
-                        Psalm {chapter}:{actionSheet?.verse}
+                        {t('psalmSubtitle', { chapter, verse: actionSheet?.verse })}
                     </Text>
                     <M3Divider />
 
@@ -313,7 +313,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                             const { verse, text } = actionSheet;
                             setActionSheet(null);
                             Share.share({
-                                message: `${text}\n\n— Psalm ${chapter}:${verse} (Psalms Way)`,
+                                message: `${text}\n\n— ${t('psalmSubtitle', { chapter, verse })} (Psalms Way)`,
                             });
                         }}>
                         <Icons name="share" size={22} color={colors.onSurfaceVariant} />
@@ -353,7 +353,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
 
                     {/* Title */}
                     <Text style={[type.titleMedium, styles.sheetTitle, { color: colors.onSurface }]}>
-                        Highlight colour
+                        {t('highlightColour')}
                     </Text>
                     <M3Divider />
 

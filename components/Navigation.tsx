@@ -60,7 +60,7 @@ export default function Navigation({
           />
           <M3IconButton
             onPress={onOpenChapterSelect}
-            accessibilityLabel="Select chapter"
+            accessibilityLabel={t('a11ySelectChapter')}
             style={styles.chapterIconBtn}>
             <Icons name="grid" size={22} color={colors.primary} />
           </M3IconButton>
