@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {getRandomVerse} from './psalmsService';
 
 export type ChallengeId =
   | 'jesus_testing'
@@ -11,15 +12,25 @@ export type ChallengeId =
 export type ChallengeDef = {
   id: ChallengeId;
   days: number;
-  chapters: number[];
+  chapters: number[]; // one psalm chapter per day
   icon: string;
   i18nKey: string;
   i18nDescKey: string;
 };
 
+/** One verse assigned to a single day of the challenge */
+export type ChallengeDayAssignment = {
+  chapter: number;
+  verseNumber: number;
+};
+
 export type ChallengeProgress = {
-  startDate: string;
-  completedChapters: number[];
+  startDate: string;             // 'YYYY-MM-DD'
+  notifHour: number;
+  notifMinute: number;
+  dayAssignments: ChallengeDayAssignment[]; // pre-generated, one per day
+  completedDays: number[];       // 0-based day indices that are done
+  lastCompletedDate?: string;    // 'YYYY-MM-DD' — date the most recent day was marked read
   completed: boolean;
   completedDate?: string;
 };
@@ -30,8 +41,10 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
   {
     id: 'jesus_testing',
     days: 40,
-    chapters: [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
-               21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40],
+    chapters: [
+      1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,
+      21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,
+    ],
     icon: '✝️',
     i18nKey: 'challenge_jesus_testing',
     i18nDescKey: 'challenge_jesus_testing_desc',
@@ -78,7 +91,7 @@ export const CHALLENGE_DEFS: ChallengeDef[] = [
   },
 ];
 
-const STORAGE_KEY = 'challengeProgress';
+const STORAGE_KEY = 'challengeProgress_v2';
 
 async function load(): Promise<AllChallengeProgress> {
   try {
@@ -97,50 +110,116 @@ export async function getAllProgress(): Promise<AllChallengeProgress> {
   return load();
 }
 
-export async function startChallenge(id: ChallengeId): Promise<void> {
+export async function getProgress(id: ChallengeId): Promise<ChallengeProgress | undefined> {
   const all = await load();
-  if (all[id] && !all[id]!.completed) {
-    return; // already in progress
-  }
-  all[id] = {
-    startDate: new Date().toISOString().split('T')[0],
-    completedChapters: [],
-    completed: false,
-  };
-  await save(all);
+  return all[id];
 }
 
 /**
- * Mark a chapter as read for all active (started, not completed) challenges that include it.
- * Returns array of ChallengeIds that were JUST completed by this read.
+ * Start a challenge. Generates a random verse per chapter (pre-assigned).
+ * Returns the new progress object (so caller can schedule the notification).
  */
-export async function markChapterReadForChallenges(chapter: number): Promise<ChallengeId[]> {
+export async function startChallenge(
+  id: ChallengeId,
+  notifHour: number,
+  notifMinute: number,
+  version: string = 'modern',
+): Promise<ChallengeProgress> {
+  const def = CHALLENGE_DEFS.find(d => d.id === id)!;
+
+  // Generate one random verse per chapter
+  const dayAssignments: ChallengeDayAssignment[] = def.chapters.map(chapter => {
+    const result = getRandomVerse(chapter, version);
+    return {
+      chapter,
+      verseNumber: result?.verseNumber ?? 1,
+    };
+  });
+
+  const progress: ChallengeProgress = {
+    startDate: new Date().toISOString().split('T')[0],
+    notifHour,
+    notifMinute,
+    dayAssignments,
+    completedDays: [],
+    completed: false,
+  };
+
   const all = await load();
-  const justCompleted: ChallengeId[] = [];
+  all[id] = progress;
+  await save(all);
+  return progress;
+}
 
-  for (const def of CHALLENGE_DEFS) {
-    const progress = all[def.id];
-    if (!progress || progress.completed) continue;
-    if (!def.chapters.includes(chapter)) continue;
-    if (progress.completedChapters.includes(chapter)) continue;
+function todayStr(): string {
+  return new Date().toISOString().split('T')[0];
+}
 
-    progress.completedChapters = [...progress.completedChapters, chapter];
+/**
+ * Get the next uncompleted day index (0-based). Returns -1 if all done.
+ */
+export function getNextDayIndex(progress: ChallengeProgress): number {
+  const total = progress.dayAssignments.length;
+  for (let i = 0; i < total; i++) {
+    if (!progress.completedDays.includes(i)) return i;
+  }
+  return -1;
+}
 
-    // Check if all chapters are now done
-    const allDone = def.chapters.every(c => progress.completedChapters.includes(c));
-    if (allDone) {
-      progress.completed = true;
-      progress.completedDate = new Date().toISOString().split('T')[0];
-      justCompleted.push(def.id);
-    }
-    all[def.id] = progress;
+/**
+ * Returns true if the user is allowed to mark a verse as read today.
+ * False if they already did it today.
+ */
+export function canReadToday(progress: ChallengeProgress): boolean {
+  if (!progress.lastCompletedDate) return true;
+  return progress.lastCompletedDate !== todayStr();
+}
+
+export type DayCompleteResult =
+  | {blocked: true}
+  | {blocked: false; completedDayIndex: number; daysLeft: number; challengeJustCompleted: boolean};
+
+/**
+ * Mark a specific day (0-based) as complete.
+ * Enforces one read per calendar day — returns {blocked: true} if already done today.
+ */
+export async function markDayComplete(
+  id: ChallengeId,
+  dayIndex: number,
+): Promise<DayCompleteResult> {
+  const all = await load();
+  const progress = all[id];
+  if (!progress) throw new Error('Challenge not started');
+
+  // One per day enforcement
+  const today = todayStr();
+  if (progress.lastCompletedDate === today) {
+    return {blocked: true};
   }
 
-  if (justCompleted.length > 0 || Object.keys(all).length > 0) {
-    await save(all);
+  if (!progress.completedDays.includes(dayIndex)) {
+    progress.completedDays = [...progress.completedDays, dayIndex];
+  }
+  progress.lastCompletedDate = today;
+
+  const total = progress.dayAssignments.length;
+  const daysLeft = total - progress.completedDays.length;
+  const challengeJustCompleted = daysLeft === 0;
+
+  if (challengeJustCompleted) {
+    progress.completed = true;
+    progress.completedDate = today;
   }
 
-  return justCompleted;
+  all[id] = progress;
+  await save(all);
+
+  return {
+    blocked: false,
+    completedDayIndex: dayIndex,
+    daysLeft,
+    challengeJustCompleted,
+  };
 }
 
 export async function resetChallenge(id: ChallengeId): Promise<void> {

@@ -82,6 +82,66 @@ export async function getScheduledNotifications(): Promise<TriggerNotification[]
   return notifee.getTriggerNotifications();
 }
 
+// ─── Challenge Notifications ──────────────────────────────────────────────────
+
+const CHALLENGE_CHANNEL_ID = 'challenge_reminder';
+const CHALLENGE_NOTIF_PREFIX = 'challenge_';
+
+export async function createChallengeChannel(): Promise<void> {
+  await notifee.createChannel({
+    id: CHALLENGE_CHANNEL_ID,
+    name: 'Challenge Reminders',
+    importance: AndroidImportance.DEFAULT,
+  });
+}
+
+export async function scheduleChallengeNotification(
+  challengeId: string,
+  challengeName: string,
+  hour: number,
+  minute: number,
+  verseText: string,
+): Promise<void> {
+  await createChallengeChannel();
+
+  const body = verseText.length > 120 ? verseText.slice(0, 120) + '…' : verseText;
+
+  const now = new Date();
+  const trigger = new Date();
+  trigger.setHours(hour, minute, 0, 0);
+  if (trigger.getTime() <= now.getTime()) {
+    trigger.setDate(trigger.getDate() + 1);
+  }
+
+  // Cancel any previous notification for this challenge
+  await cancelChallengeNotification(challengeId);
+
+  await notifee.createTriggerNotification(
+    {
+      id: `${CHALLENGE_NOTIF_PREFIX}${challengeId}`,
+      title: challengeName,
+      body,
+      android: {
+        channelId: CHALLENGE_CHANNEL_ID,
+        pressAction: {id: 'default'},
+        smallIcon: 'ic_launcher',
+      },
+      data: {
+        challengeId,
+      },
+    },
+    {
+      type: TriggerType.TIMESTAMP,
+      timestamp: trigger.getTime(),
+      repeatFrequency: RepeatFrequency.DAILY,
+    },
+  );
+}
+
+export async function cancelChallengeNotification(challengeId: string): Promise<void> {
+  await notifee.cancelTriggerNotification(`${CHALLENGE_NOTIF_PREFIX}${challengeId}`);
+}
+
 // Re-export EventType for use in App.tsx
 export {EventType};
 export default notifee;

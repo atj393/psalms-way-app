@@ -147,5 +147,21 @@
   "challenge_trust": "Trust in God",
   "challenge_trust_desc": "30 days of psalms anchored in faith and trust",
   "challenge_praise": "Praise Journey",
-  "challenge_praise_desc": "7 psalms of pure praise and worship"
+  "challenge_praise_desc": "7 psalms of pure praise and worship",
+
+  "challengeSetTime": "When should we remind you?",
+  "challengeTimeDesc": "Daily reminder at {{time}}",
+  "challengeDay": "Day {{day}} of {{total}}",
+  "challengeDayNumber": "Day {{day}}",
+  "challengeTodaysVerse": "Today's Verse",
+  "markAsRead": "Mark as Read",
+  "challengeDayComplete": "Day {{day}} Complete! 🎉",
+  "challengeDaysLeft": "{{count}} days to go",
+  "challengeOneMoreDay": "Just 1 more day!",
+  "challengeSeeYouTomorrow": "See you tomorrow!",
+  "challengeAllDone": "Challenge Complete! 🎉",
+  "challengeNotStarted": "Start this challenge to begin your journey",
+  "challengeAlreadyDone": "Already read today — come back tomorrow!",
+  "challengePastDays": "Completed Days",
+  "challengeRestart": "Start Again"
 }
