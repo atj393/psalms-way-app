@@ -6,7 +6,10 @@ import i18n, {getDeviceLanguage} from '../i18n';
 const STORAGE_KEY = 'appSettings';
 
 export type BibleVersion = string;
-export type AppLanguage = 'en' | 'de' | 'fr' | 'es' | 'hi' | 'ta' | 'te' | 'kn' | 'ml';
+export type AppLanguage = 'en' | 'de' | 'fr' | 'es' | 'hi' | 'ta' | 'te' | 'kn' | 'ml'
+  | 'zh' | 'pt' | 'pl' | 'ja' | 'ro' | 'he' | 'id' | 'af' | 'sq' | 'cs' | 'bn' | 'bo'
+  | 'vi' | 'it' | 'fi' | 'gu' | 'ha' | 'ht' | 'hu' | 'ko' | 'lt' | 'lv' | 'mi' | 'mr'
+  | 'my' | 'ne' | 'fa' | 'pa' | 'so' | 'nl' | 'ar' | 'ru' | 'tl' | 'th' | 'tr' | 'ug' | 'ur' | 'wo';
 
 type AppSettings = {
   fontSize: number;

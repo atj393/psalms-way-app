@@ -15,6 +15,8 @@ type Props = {
   onLibraryPress: () => void;
   onFavoritePress: () => void;
   onStatsPress: () => void;
+  onBadgesPress: () => void;
+  onChallengesPress: () => void;
 };
 
 export default function Header({
@@ -27,6 +29,8 @@ export default function Header({
   onLibraryPress,
   onFavoritePress,
   onStatsPress,
+  onBadgesPress,
+  onChallengesPress,
 }: Props) {
   const {t} = useTranslation();
   const {colors, type, isDark} = useTheme();
@@ -56,6 +60,12 @@ export default function Header({
           </M3IconButton>
           <M3IconButton onPress={onStatsPress} accessibilityLabel={t('a11yReadingStats')}>
             <Icons name="insights" size={22} color={iconColor} />
+          </M3IconButton>
+          <M3IconButton onPress={onBadgesPress} accessibilityLabel={t('badges')}>
+            <Icons name="trophy" size={22} color={iconColor} />
+          </M3IconButton>
+          <M3IconButton onPress={onChallengesPress} accessibilityLabel={t('challenges')}>
+            <Icons name="check-circle" size={22} color={iconColor} />
           </M3IconButton>
           <M3IconButton onPress={onLibraryPress} accessibilityLabel={t('a11yOpenLibrary')}>
             <Icons name="library" size={22} color={iconColor} />
