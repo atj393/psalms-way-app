@@ -15,6 +15,10 @@ import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
 import {scheduleDailyNotification} from '../services/notificationService';
 import {useAppSettings} from '../context/AppSettingsContext';
+import {checkAndAwardBadges, BADGE_DEFS, type BadgeDef} from '../services/badgesService';
+import {markChapterReadForChallenges, CHALLENGE_DEFS, type ChallengeId} from '../services/challengesService';
+import AchievementCard from '../components/AchievementCard';
+import {useTranslation} from 'react-i18next';
 
 type HomeNavProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 type HomeRoute = RouteProp<RootStackParamList, 'Home'>;
@@ -43,10 +47,37 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [isFav, setIsFav] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
+  const {t} = useTranslation();
+
+  // Achievement card state: null = hidden, object = show card
+  type Achievement = {type: 'badge' | 'challenge'; icon: string; title: string; description: string};
+  const [achievement, setAchievement] = useState<Achievement | null>(null);
+  const pendingAchievements = useRef<Achievement[]>([]);
+
+  const showNextAchievement = useCallback(() => {
+    const next = pendingAchievements.current.shift();
+    setAchievement(next ?? null);
+  }, []);
 
   // Update streak, reschedule notification with a fresh verse
   useEffect(() => {
-    checkAndUpdateStreak().then(setStreak).catch(() => {});
+    checkAndUpdateStreak().then(newStreak => {
+      setStreak(newStreak);
+      checkAndAwardBadges(newStreak).then(newBadges => {
+        if (newBadges.length > 0) {
+          const items: Achievement[] = newBadges.map(b => ({
+            type: 'badge' as const,
+            icon: b.icon,
+            title: t(b.i18nKey),
+            description: t(b.i18nDescKey),
+          }));
+          pendingAchievements.current.push(...items);
+          if (!achievement) {
+            showNextAchievement();
+          }
+        }
+      }).catch(() => {});
+    }).catch(() => {});
     if (notificationEnabled) {
       scheduleDailyNotification(
         notificationHour,
@@ -81,15 +112,34 @@ export default function HomeScreen() {
 
   const scrollTop = () => scrollRef.current?.scrollTo({y: 0, animated: false});
 
+  const handleChapterRead = useCallback((chapterNum: number) => {
+    addHistory(chapterNum, 0).catch(() => {});
+    markChapterReadForChallenges(chapterNum).then(completedIds => {
+      if (completedIds.length > 0) {
+        const items: Achievement[] = completedIds.map(id => {
+          const def = CHALLENGE_DEFS.find(c => c.id === id);
+          return {
+            type: 'challenge' as const,
+            icon: def?.icon ?? '🏆',
+            title: t(def?.i18nKey ?? 'challengeFinished'),
+            description: t(def?.i18nDescKey ?? ''),
+          };
+        });
+        pendingAchievements.current.push(...items);
+        setAchievement(prev => prev ?? (pendingAchievements.current.shift() ?? null));
+      }
+    }).catch(() => {});
+  }, [t]);
+
   const navigateToChapter = useCallback(
     (newChapter: number, screen: SubScreen) => {
       setChapter(newChapter);
       setHighlightVerse(0);
       setSubScreen(screen);
       scrollTop();
-      addHistory(newChapter, 0).catch(() => {});
+      handleChapterRead(newChapter);
     },
-    [],
+    [handleChapterRead],
   );
 
   const onNewVerse = useCallback(() => {
@@ -98,8 +148,8 @@ export default function HomeScreen() {
     setHighlightVerse(0);
     setSubScreen('verse');
     scrollTop();
-    addHistory(c, 0).catch(() => {});
-  }, []);
+    handleChapterRead(c);
+  }, [handleChapterRead]);
 
   const onNewChapter = useCallback(() => {
     navigateToChapter(randomChapter(), 'chapter');
@@ -108,24 +158,24 @@ export default function HomeScreen() {
   const onPrevChapter = useCallback(() => {
     setChapter(prev => {
       const next = prev <= 1 ? 150 : prev - 1;
-      addHistory(next, 0).catch(() => {});
+      handleChapterRead(next);
       return next;
     });
     setHighlightVerse(0);
     setSubScreen('chapter');
     scrollTop();
-  }, []);
+  }, [handleChapterRead]);
 
   const onNextChapter = useCallback(() => {
     setChapter(prev => {
       const next = prev >= 150 ? 1 : prev + 1;
-      addHistory(next, 0).catch(() => {});
+      handleChapterRead(next);
       return next;
     });
     setHighlightVerse(0);
     setSubScreen('chapter');
     scrollTop();
-  }, []);
+  }, [handleChapterRead]);
 
   const onVerseLoaded = useCallback((verseNumber: number) => {
     setHighlightVerse(verseNumber);
@@ -149,6 +199,14 @@ export default function HomeScreen() {
 
   const openStats = useCallback(() => {
     navigation.navigate('Stats');
+  }, [navigation]);
+
+  const openBadges = useCallback(() => {
+    navigation.navigate('Badges');
+  }, [navigation]);
+
+  const openChallenges = useCallback(() => {
+    navigation.navigate('Challenges');
   }, [navigation]);
 
   const openLibrary = useCallback(() => {
@@ -195,6 +253,8 @@ export default function HomeScreen() {
         onLibraryPress={openLibrary}
         onFavoritePress={onFavoritePress}
         onStatsPress={openStats}
+        onBadgesPress={openBadges}
+        onChallengesPress={openChallenges}
       />
 
       {subScreen === 'chapter' ? (
@@ -223,6 +283,17 @@ export default function HomeScreen() {
         onNextChapter={onNextChapter}
         onOpenChapterSelect={openChapterSelect}
       />
+
+      {achievement && (
+        <AchievementCard
+          visible={true}
+          type={achievement.type}
+          icon={achievement.icon}
+          title={achievement.title}
+          description={achievement.description}
+          onDismiss={showNextAchievement}
+        />
+      )}
     </SafeAreaView>
   );
 }

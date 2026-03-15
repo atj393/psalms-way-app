@@ -14,6 +14,8 @@ import SearchScreen from './screens/SearchScreen';
 import CompareScreen from './screens/CompareScreen';
 import NoteEditScreen from './screens/NoteEditScreen';
 import StatsScreen from './screens/StatsScreen';
+import BadgesScreen from './screens/BadgesScreen';
+import ChallengesScreen from './screens/ChallengesScreen';
 import notifee, {EventType} from '@notifee/react-native';
 import {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
 export {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
@@ -27,6 +29,8 @@ export type RootStackParamList = {
   Compare: {chapter: number; verse: number};
   NoteEdit: {chapter: number; verse: number};
   Stats: undefined;
+  Badges: undefined;
+  Challenges: undefined;
 };
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
@@ -123,6 +127,16 @@ export default function App() {
               <Stack.Screen
                 name="Stats"
                 component={StatsScreen}
+                options={{presentation: 'modal'}}
+              />
+              <Stack.Screen
+                name="Badges"
+                component={BadgesScreen}
+                options={{presentation: 'modal'}}
+              />
+              <Stack.Screen
+                name="Challenges"
+                component={ChallengesScreen}
                 options={{presentation: 'modal'}}
               />
             </Stack.Navigator>
