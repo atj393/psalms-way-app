@@ -31,32 +31,54 @@ function BadgeItem({def, earnedDate}: {def: BadgeDef; earnedDate?: string}) {
       })
     : null;
 
+  if (earned) {
+    // Earned badge — bright, prominent, gold accent
+    return (
+      <M3Card variant="filled" style={[styles.badgeCard, styles.badgeCardEarned]}>
+        <View style={styles.badgeRow}>
+          <View style={styles.emojiWrap}>
+            <Text style={styles.badgeEmoji}>{def.icon}</Text>
+          </View>
+          <View style={styles.badgeInfo}>
+            <Text style={[type.titleMedium, {color: colors.onSurface, fontWeight: '700'}]}>
+              {t(def.i18nKey)}
+            </Text>
+            <Text style={[type.bodySmall, {color: colors.onSurfaceVariant, marginTop: 2}]}>
+              {t(def.i18nDescKey)}
+            </Text>
+            {dateLabel && (
+              <Text style={[type.labelSmall, {color: colors.primary, marginTop: 4}]}>
+                🏆 {dateLabel}
+              </Text>
+            )}
+          </View>
+          <Icons name="check-circle" size={24} color={colors.primary} />
+        </View>
+      </M3Card>
+    );
+  }
+
+  // Locked badge — visible but clearly not yet achieved
   return (
-    <M3Card
-      variant={earned ? 'filled' : 'outlined'}
-      style={[styles.badgeCard, !earned && {opacity: 0.45}]}>
+    <M3Card variant="outlined" style={styles.badgeCard}>
       <View style={styles.badgeRow}>
-        <Text style={styles.badgeEmoji}>{def.icon}</Text>
+        <View style={[styles.emojiWrap, styles.emojiWrapLocked]}>
+          <Text style={[styles.badgeEmoji, {opacity: 0.35}]}>{def.icon}</Text>
+        </View>
         <View style={styles.badgeInfo}>
-          <Text style={[type.titleMedium, {color: earned ? colors.onSurface : colors.onSurfaceVariant}]}>
+          <Text style={[type.titleMedium, {color: colors.onSurfaceVariant}]}>
             {t(def.i18nKey)}
           </Text>
-          <Text style={[type.bodySmall, {color: colors.onSurfaceVariant, marginTop: 2}]}>
+          <Text style={[type.bodySmall, {color: colors.onSurfaceVariant, marginTop: 2, opacity: 0.7}]}>
             {t(def.i18nDescKey)}
           </Text>
-          {earned && dateLabel ? (
-            <Text style={[type.labelSmall, {color: colors.primary, marginTop: 4}]}>
-              {dateLabel}
-            </Text>
-          ) : !earned ? (
-            <Text style={[type.labelSmall, {color: colors.onSurfaceVariant, marginTop: 4}]}>
+          <View style={styles.lockedRow}>
+            <Icons name="circle-outline" size={12} color={colors.onSurfaceVariant} />
+            <Text style={[type.labelSmall, {color: colors.onSurfaceVariant, marginLeft: 4, opacity: 0.7}]}>
               {t('badgeLocked')}
             </Text>
-          ) : null}
+          </View>
         </View>
-        {earned && (
-          <Icons name="check-circle" size={22} color={colors.primary} />
-        )}
       </View>
     </M3Card>
   );
@@ -84,9 +106,11 @@ export default function BadgesScreen() {
         <Text style={[type.titleLarge, {color: colors.onSurface, flex: 1, marginLeft: spacing.sm}]}>
           {t('badgesTitle')}
         </Text>
-        <Text style={[type.labelLarge, {color: colors.primary}]}>
-          {earnedCount}/{BADGE_DEFS.length}
-        </Text>
+        <View style={styles.countChip}>
+          <Text style={[type.labelMedium, {color: colors.primary}]}>
+            {earnedCount}/{BADGE_DEFS.length}
+          </Text>
+        </View>
       </View>
       <M3Divider />
 
@@ -111,6 +135,11 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
     minHeight: 56,
   },
+  countChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
   list: {
     padding: spacing.md,
     gap: spacing.sm,
@@ -118,15 +147,35 @@ const styles = StyleSheet.create({
   badgeCard: {
     padding: spacing.md,
   },
+  badgeCardEarned: {
+    // M3 filled card already has a surface tint — no extra opacity
+  },
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
   },
+  emojiWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  emojiWrapLocked: {
+    // faint background for locked
+    backgroundColor: 'rgba(128,128,128,0.1)',
+  },
   badgeEmoji: {
-    fontSize: 40,
+    fontSize: 36,
   },
   badgeInfo: {
     flex: 1,
+  },
+  lockedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 4,
   },
 });

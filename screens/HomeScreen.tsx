@@ -15,8 +15,7 @@ import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
 import {scheduleDailyNotification} from '../services/notificationService';
 import {useAppSettings} from '../context/AppSettingsContext';
-import {checkAndAwardBadges, BADGE_DEFS, type BadgeDef} from '../services/badgesService';
-import {markChapterReadForChallenges, CHALLENGE_DEFS, type ChallengeId} from '../services/challengesService';
+import {checkAndAwardBadges} from '../services/badgesService';
 import AchievementCard from '../components/AchievementCard';
 import {useTranslation} from 'react-i18next';
 
@@ -72,9 +71,10 @@ export default function HomeScreen() {
             description: t(b.i18nDescKey),
           }));
           pendingAchievements.current.push(...items);
-          if (!achievement) {
-            showNextAchievement();
-          }
+          // Delay 5 seconds so user can settle into reading first
+          setTimeout(() => {
+            setAchievement(prev => prev ?? (pendingAchievements.current.shift() ?? null));
+          }, 5000);
         }
       }).catch(() => {});
     }).catch(() => {});
@@ -114,22 +114,7 @@ export default function HomeScreen() {
 
   const handleChapterRead = useCallback((chapterNum: number) => {
     addHistory(chapterNum, 0).catch(() => {});
-    markChapterReadForChallenges(chapterNum).then(completedIds => {
-      if (completedIds.length > 0) {
-        const items: Achievement[] = completedIds.map(id => {
-          const def = CHALLENGE_DEFS.find(c => c.id === id);
-          return {
-            type: 'challenge' as const,
-            icon: def?.icon ?? '🏆',
-            title: t(def?.i18nKey ?? 'challengeFinished'),
-            description: t(def?.i18nDescKey ?? ''),
-          };
-        });
-        pendingAchievements.current.push(...items);
-        setAchievement(prev => prev ?? (pendingAchievements.current.shift() ?? null));
-      }
-    }).catch(() => {});
-  }, [t]);
+  }, []);
 
   const navigateToChapter = useCallback(
     (newChapter: number, screen: SubScreen) => {

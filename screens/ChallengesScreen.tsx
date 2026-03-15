@@ -1,25 +1,16 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  FlatList,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {FlatList, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useTranslation} from 'react-i18next';
-import {spacing, useTheme, shape} from '../theme';
-import {M3Card, M3Divider, M3FilledButton, M3IconButton, M3Pressable, M3TextButton} from '../components/M3';
+import {spacing, useTheme} from '../theme';
+import {M3Divider, M3IconButton, M3Pressable} from '../components/M3';
 import Icons from '../components/Icons';
 import {
   CHALLENGE_DEFS,
   getAllProgress,
-  startChallenge,
-  resetChallenge,
+  getNextDayIndex,
   type ChallengeDef,
   type AllChallengeProgress,
   type ChallengeId,
@@ -54,36 +45,71 @@ function ChallengeCard({
 }) {
   const {t} = useTranslation();
   const {colors, type} = useTheme();
-  const done = progress?.completedChapters.length ?? 0;
+
+  const done = progress?.completedDays.length ?? 0;
   const total = def.chapters.length;
-  const completed = progress?.completed ?? false;
-  const started = Boolean(progress && !completed);
+  const isCompleted = progress?.completed ?? false;
+  const isStarted = Boolean(progress && !isCompleted);
+  const nextDayIndex = isStarted && progress ? getNextDayIndex(progress) : -1;
+
+  // Always use explicit colors so text is always readable regardless of card variant
+  const titleColor = isCompleted ? colors.primary : colors.onSurface;
+  const subtitleColor = colors.onSurfaceVariant;
 
   return (
     <M3Pressable onPress={onPress}>
-      <M3Card
-        variant={completed ? 'filled' : 'elevated'}
-        style={styles.challengeCard}>
+      <View
+        style={[
+          styles.cardContainer,
+          {
+            backgroundColor: isCompleted
+              ? colors.primaryContainer
+              : isStarted
+              ? colors.secondaryContainer
+              : colors.surfaceVariant,
+            borderRadius: 16,
+          },
+        ]}>
+        {/* Top row */}
         <View style={styles.challengeTop}>
           <Text style={styles.challengeEmoji}>{def.icon}</Text>
           <View style={styles.challengeInfo}>
-            <Text style={[type.titleMedium, {color: colors.onSurface}]}>
+            <Text style={[type.titleMedium, {color: titleColor, fontWeight: '600'}]}>
               {t(def.i18nKey)}
             </Text>
-            <Text style={[type.bodySmall, {color: colors.onSurfaceVariant, marginTop: 2}]}>
-              {def.days} {t('days').toLowerCase()} · {t('challengeProgress', {done, total})}
+            <Text style={[type.bodySmall, {color: subtitleColor, marginTop: 2}]}>
+              {def.days} {t('days').toLowerCase()}
             </Text>
+            {isStarted && nextDayIndex >= 0 && (
+              <Text style={[type.labelSmall, {color: colors.primary, marginTop: 2}]}>
+                {t('challengeDay', {day: nextDayIndex + 1, total})}
+              </Text>
+            )}
+            {isCompleted && (
+              <Text style={[type.labelSmall, {color: colors.primary, marginTop: 2}]}>
+                {t('challengeCompleted')}
+              </Text>
+            )}
           </View>
-          {completed && <Icons name="check-circle" size={22} color={colors.primary} />}
-          {!completed && started && <Icons name="chevron-right" size={20} color={colors.onSurfaceVariant} />}
-          {!completed && !started && <Icons name="play-arrow" size={20} color={colors.onSurfaceVariant} />}
+          {isCompleted ? (
+            <Icons name="check-circle" size={22} color={colors.primary} />
+          ) : isStarted ? (
+            <Icons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
+          ) : (
+            <Icons name="play-arrow" size={20} color={colors.onSurfaceVariant} />
+          )}
         </View>
-        {(started || completed) && (
+
+        {/* Progress bar */}
+        {(isStarted || isCompleted) && (
           <View style={{marginTop: spacing.sm}}>
             <ProgressBar done={done} total={total} />
+            <Text style={[type.labelSmall, {color: subtitleColor, marginTop: 3}]}>
+              {t('challengeProgress', {done, total})}
+            </Text>
           </View>
         )}
-      </M3Card>
+      </View>
     </M3Pressable>
   );
 }
@@ -93,36 +119,17 @@ export default function ChallengesScreen() {
   const {t} = useTranslation();
   const {colors, type} = useTheme();
   const [allProgress, setAllProgress] = useState<AllChallengeProgress>({});
-  const [selectedDef, setSelectedDef] = useState<ChallengeDef | null>(null);
 
   const reload = useCallback(() => {
     getAllProgress().then(setAllProgress).catch(() => {});
   }, []);
 
-  useEffect(() => {
-    reload();
-  }, [reload]);
-
-  const handleStart = useCallback(async (id: ChallengeId) => {
-    await startChallenge(id).catch(() => {});
-    reload();
-  }, [reload]);
-
-  const handleReset = useCallback(async (id: ChallengeId) => {
-    await resetChallenge(id).catch(() => {});
-    reload();
-  }, [reload]);
-
-  const handleChapterTap = useCallback((chapter: number) => {
-    setSelectedDef(null);
-    // Navigate home to that chapter
-    navigation.navigate('Home', {chapter, verse: 0});
-  }, [navigation]);
-
-  const selected = selectedDef;
-  const selectedProgress = selected ? allProgress[selected.id] : undefined;
-  const isStarted = Boolean(selectedProgress && !selectedProgress.completed);
-  const isCompleted = selectedProgress?.completed ?? false;
+  // Reload whenever screen comes into focus (e.g. returning from detail page)
+  useFocusEffect(
+    useCallback(() => {
+      reload();
+    }, [reload]),
+  );
 
   return (
     <SafeAreaView edges={['top']} style={[styles.container, {backgroundColor: colors.background}]}>
@@ -145,118 +152,10 @@ export default function ChallengesScreen() {
           <ChallengeCard
             def={item}
             progress={allProgress[item.id]}
-            onPress={() => setSelectedDef(item)}
+            onPress={() => navigation.navigate('ChallengeDetail', {challengeId: item.id})}
           />
         )}
       />
-
-      {/* Challenge Detail Bottom Sheet */}
-      <Modal
-        visible={Boolean(selected)}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setSelectedDef(null)}>
-        <TouchableOpacity
-          style={[styles.modalBackdrop, {backgroundColor: colors.scrim + '99'}]}
-          activeOpacity={1}
-          onPress={() => setSelectedDef(null)}
-        />
-        {selected && (
-          <View
-            style={[
-              styles.sheet,
-              {
-                backgroundColor: colors.surface,
-                borderTopLeftRadius: shape.extraLarge,
-                borderTopRightRadius: shape.extraLarge,
-              },
-            ]}>
-            <View style={styles.sheetHandle} />
-
-            {/* Title */}
-            <View style={styles.sheetTitleRow}>
-              <Text style={styles.sheetEmoji}>{selected.icon}</Text>
-              <View style={{flex: 1}}>
-                <Text style={[type.titleLarge, {color: colors.onSurface}]}>
-                  {t(selected.i18nKey)}
-                </Text>
-                <Text style={[type.bodySmall, {color: colors.onSurfaceVariant, marginTop: 2}]}>
-                  {selected.days} {t('days').toLowerCase()} · {selected.chapters.length} {t('chapters').toLowerCase()}
-                </Text>
-              </View>
-            </View>
-
-            <Text style={[type.bodyMedium, {color: colors.onSurfaceVariant, paddingHorizontal: spacing.lg, marginBottom: spacing.md}]}>
-              {t(selected.i18nDescKey)}
-            </Text>
-
-            {(isStarted || isCompleted) && (
-              <View style={{paddingHorizontal: spacing.lg, marginBottom: spacing.md}}>
-                <ProgressBar
-                  done={selectedProgress?.completedChapters.length ?? 0}
-                  total={selected.chapters.length}
-                />
-                <Text style={[type.labelSmall, {color: colors.onSurfaceVariant, marginTop: 4}]}>
-                  {t('challengeProgress', {
-                    done: selectedProgress?.completedChapters.length ?? 0,
-                    total: selected.chapters.length,
-                  })}
-                </Text>
-              </View>
-            )}
-
-            <M3Divider />
-
-            {/* Chapter list */}
-            <ScrollView style={styles.chapterList}>
-              {selected.chapters.map((ch, idx) => {
-                const isDone = selectedProgress?.completedChapters.includes(ch) ?? false;
-                return (
-                  <M3Pressable key={`${ch}-${idx}`} onPress={() => handleChapterTap(ch)}>
-                    <View style={[styles.chapterRow, {borderBottomColor: colors.outlineVariant}]}>
-                      <Icons
-                        name={isDone ? 'check-circle' : 'circle-outline'}
-                        size={18}
-                        color={isDone ? colors.primary : colors.onSurfaceVariant}
-                      />
-                      <Text style={[type.bodyLarge, {color: colors.onSurface, marginLeft: spacing.sm, flex: 1}]}>
-                        {t('psalmTitle', {chapter: ch})}
-                      </Text>
-                      <Icons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
-                    </View>
-                  </M3Pressable>
-                );
-              })}
-            </ScrollView>
-
-            <M3Divider />
-
-            <View style={styles.sheetFooter}>
-              {isCompleted ? (
-                <>
-                  <Text style={[type.labelLarge, {color: colors.primary}]}>{t('challengeCompleted')}</Text>
-                  <M3TextButton
-                    label={t('close')}
-                    onPress={() => { handleReset(selected.id); setSelectedDef(null); }}
-                  />
-                </>
-              ) : isStarted ? (
-                <>
-                  <M3TextButton label={t('close')} onPress={() => setSelectedDef(null)} />
-                </>
-              ) : (
-                <>
-                  <M3TextButton label={t('close')} onPress={() => setSelectedDef(null)} />
-                  <M3FilledButton
-                    label={t('challengeStart')}
-                    onPress={() => { handleStart(selected.id); setSelectedDef(null); }}
-                  />
-                </>
-              )}
-            </View>
-          </View>
-        )}
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -274,7 +173,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     gap: spacing.sm,
   },
-  challengeCard: {
+  cardContainer: {
     padding: spacing.md,
   },
   challengeTop: {
@@ -296,53 +195,5 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 6,
     borderRadius: 3,
-  },
-  modalBackdrop: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  sheet: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    maxHeight: '80%',
-    paddingBottom: spacing.lg,
-  },
-  sheetHandle: {
-    width: 32,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: '#ccc',
-    alignSelf: 'center',
-    marginVertical: spacing.sm,
-  },
-  sheetTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
-    paddingHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  sheetEmoji: {
-    fontSize: 40,
-  },
-  chapterList: {
-    maxHeight: 260,
-    paddingHorizontal: spacing.md,
-  },
-  chapterRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: spacing.xs,
-  },
-  sheetFooter: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.sm,
   },
 });
