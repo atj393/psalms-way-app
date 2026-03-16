@@ -5,8 +5,9 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {I18nextProvider} from 'react-i18next';
 import i18n from './i18n';
-import {AppSettingsProvider} from './context/AppSettingsContext';
+import {AppSettingsProvider, useAppSettings} from './context/AppSettingsContext';
 import HomeScreen from './screens/HomeScreen';
+import OnboardingScreen from './screens/OnboardingScreen';
 import ChapterSelectScreen from './screens/ChapterSelectScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import LibraryScreen from './screens/LibraryScreen';
@@ -24,6 +25,7 @@ export {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
 
 export type RootStackParamList = {
   Home: {chapter?: number; verse?: number} | undefined;
+  Onboarding: undefined;
   ChapterSelect: {onSelect: (chapter: number) => void};
   Settings: undefined;
   Library: {onSelect: (chapter: number) => void};
@@ -40,12 +42,13 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App() {
+// ─── Inner component — has access to AppSettingsContext ───────────────────────
+
+function AppContent() {
+  const {showOnboarding} = useAppSettings();
+
   /**
    * Stores pending navigation when the NavigationContainer is not yet ready.
-   * This is for the extremely rare cold-start case where JS finishes before
-   * the navigation container has initialised (in practice, getInitialNotification
-   * always resolves after onReady, so pendingNav is almost never used for verses).
    */
   const pendingNav = useRef<
     | {chapter: number; verse: number; challengeId?: undefined}
@@ -54,32 +57,17 @@ export default function App() {
   >(null);
 
   useEffect(() => {
-    // ─── Helpers ────────────────────────────────────────────────────────────
+    // ─── Helpers ──────────────────────────────────────────────────────────
 
     /**
      * Validate and dispatch a verse notification press to HomeScreen.
      *
      * Architecture: DeviceEventEmitter is the reliable cross-case mechanism:
-     *
-     *   Cold start: getInitialNotification() resolves as a JS macrotask, which
-     *     always runs AFTER useEffect hooks have run in the component tree.
-     *     HomeScreen's DeviceEventEmitter listener is therefore already registered
-     *     by the time the event is emitted. ✓
-     *
-     *   Background → foreground: onForegroundEvent fires while HomeScreen is
-     *     already mounted and its listener is registered. ✓
-     *
-     *   Foreground: same as background. ✓
-     *
-     * We do NOT rely on navigationRef.navigate('Home', params) for verse
-     * navigation because React Navigation merges params — if the incoming
-     * chapter/verse happens to be the same as the currently stored params,
-     * the route.params object reference doesn't change and route-watching
-     * useEffects in HomeScreen would not re-fire. DeviceEventEmitter emits
-     * unconditionally and is not subject to value-equality checks.
+     *   Cold start: getInitialNotification() resolves as a JS macrotask — after
+     *     all useEffect hooks run, so HomeScreen's listener is already registered. ✓
+     *   Background/Foreground: onForegroundEvent fires with HomeScreen mounted. ✓
      */
     function dispatchVersePress(chapter: number, verse: number): void {
-      // Validate
       if (!chapter || isNaN(chapter) || chapter < 1 || chapter > 150) {
         console.warn('[App] dispatchVersePress: invalid chapter', chapter, '— ignoring');
         return;
@@ -88,16 +76,13 @@ export default function App() {
         console.warn('[App] dispatchVersePress: invalid verse', verse, '— ignoring');
         return;
       }
-
       console.log(`[App] Dispatching verse press → chapter=${chapter} verse=${verse}`);
       DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {chapter, verse} as NotifPressPayload);
     }
 
     function handleNotifData(data: Record<string, string>, source: string): void {
       console.log(`[App] handleNotifData from "${source}":`, JSON.stringify(data));
-
       if (data.challengeId) {
-        // Challenge notification tap → navigate to challenge detail screen
         const cid = data.challengeId as ChallengeId;
         console.log('[App] Challenge notification → challengeId:', cid);
         if (navigationRef.isReady()) {
@@ -106,7 +91,6 @@ export default function App() {
           pendingNav.current = {challengeId: cid};
         }
       } else {
-        // Daily verse notification tap
         const chapter = Number(data.chapter);
         const verse = Number(data.verse);
         console.log(`[App] Daily verse notification → chapter=${chapter} verse=${verse}`);
@@ -114,9 +98,7 @@ export default function App() {
       }
     }
 
-    // ── Foreground & background notification press ───────────────────────────
-    // onForegroundEvent fires whenever the app is visible (or becomes visible)
-    // and the user presses a notification.
+    // Foreground & background notification press
     const unsubscribe = notifee.onForegroundEvent(({type, detail}) => {
       console.log('[App] onForegroundEvent type:', type);
       if (type === EventType.PRESS && detail.notification?.data) {
@@ -127,16 +109,7 @@ export default function App() {
       }
     });
 
-    // ── Cold-start notification press ────────────────────────────────────────
-    // getInitialNotification() is ONLY non-null when the app was fully killed
-    // and then launched by tapping a notification.
-    //
-    // IMPORTANT: This resolves as a JS macrotask, meaning it resolves AFTER all
-    // useEffect hooks have run. By then HomeScreen's DeviceEventEmitter listener
-    // is registered and will receive the emitted event.
-    //
-    // REQUIREMENT: pressAction must have launchActivity: 'default' in the
-    // notification (see notificationService.ts) for this to return non-null.
+    // Cold-start notification press
     notifee.getInitialNotification().then(initial => {
       if (initial) {
         console.log('[App] getInitialNotification: found notification id=', initial.notification.id);
@@ -159,83 +132,102 @@ export default function App() {
   }, []);
 
   return (
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => {
+        console.log('[App] NavigationContainer ready');
+
+        // Show onboarding on fresh install (takes priority)
+        if (showOnboarding) {
+          navigationRef.navigate('Onboarding');
+          return;
+        }
+
+        // Replay any pending notification navigation
+        const nav = pendingNav.current;
+        pendingNav.current = null;
+        if (!nav) return;
+        if (nav.challengeId) {
+          console.log('[App] Replaying pending challenge nav:', nav.challengeId);
+          navigationRef.navigate('ChallengeDetail', {challengeId: nav.challengeId});
+        } else if (nav.chapter) {
+          console.log('[App] Replaying pending verse nav:', nav.chapter, nav.verse);
+          DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {
+            chapter: nav.chapter,
+            verse: nav.verse,
+          } as NotifPressPayload);
+        }
+      }}>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen
+          name="Onboarding"
+          component={OnboardingScreen}
+          options={{animation: 'fade'}}
+        />
+        <Stack.Screen
+          name="ChapterSelect"
+          component={ChapterSelectScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Settings"
+          component={SettingsScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Library"
+          component={LibraryScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Search"
+          component={SearchScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Compare"
+          component={CompareScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="NoteEdit"
+          component={NoteEditScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Stats"
+          component={StatsScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Badges"
+          component={BadgesScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Challenges"
+          component={ChallengesScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="ChallengeDetail"
+          component={ChallengeDetailScreen}
+          options={{presentation: 'modal'}}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+}
+
+// ─── Root App component ───────────────────────────────────────────────────────
+
+export default function App() {
+  return (
     <I18nextProvider i18n={i18n}>
       <SafeAreaProvider>
         <AppSettingsProvider>
-          <NavigationContainer
-            ref={navigationRef}
-            onReady={() => {
-              console.log('[App] NavigationContainer ready');
-              const nav = pendingNav.current;
-              pendingNav.current = null;
-              if (!nav) return;
-              if (nav.challengeId) {
-                console.log('[App] Replaying pending challenge nav:', nav.challengeId);
-                navigationRef.navigate('ChallengeDetail', {challengeId: nav.challengeId});
-              } else if (nav.chapter) {
-                // For the verse case, re-emit via DeviceEventEmitter (same path
-                // as normal) rather than using navigate params.
-                console.log('[App] Replaying pending verse nav:', nav.chapter, nav.verse);
-                DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {
-                  chapter: nav.chapter,
-                  verse: nav.verse,
-                } as NotifPressPayload);
-              }
-            }}>
-            <Stack.Navigator screenOptions={{headerShown: false}}>
-              <Stack.Screen name="Home" component={HomeScreen} />
-              <Stack.Screen
-                name="ChapterSelect"
-                component={ChapterSelectScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Settings"
-                component={SettingsScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Library"
-                component={LibraryScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Search"
-                component={SearchScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Compare"
-                component={CompareScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="NoteEdit"
-                component={NoteEditScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Stats"
-                component={StatsScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Badges"
-                component={BadgesScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="Challenges"
-                component={ChallengesScreen}
-                options={{presentation: 'modal'}}
-              />
-              <Stack.Screen
-                name="ChallengeDetail"
-                component={ChallengeDetailScreen}
-                options={{presentation: 'modal'}}
-              />
-            </Stack.Navigator>
-          </NavigationContainer>
+          <AppContent />
         </AppSettingsProvider>
       </SafeAreaProvider>
     </I18nextProvider>

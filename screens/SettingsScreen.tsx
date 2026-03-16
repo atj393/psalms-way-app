@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import { shape, spacing, useTheme, type ThemeMode } from '../theme';
-import { useAppSettings, type AppLanguage } from '../context/AppSettingsContext';
+import { useAppSettings, type AppLanguage, type ThemeColor } from '../context/AppSettingsContext';
 import { getAllVersions, type PsalmMetadata } from '../services/psalmsService';
 
 const ALL_VERSIONS: PsalmMetadata[] = getAllVersions();
@@ -39,6 +39,14 @@ const FONT_SIZE_DEFS: { label: string; size: number; a11yKey: string }[] = [
     { label: 'A', size: 16, a11yKey: 'a11yTextSizeSmall' },
     { label: 'A', size: 20, a11yKey: 'a11yTextSizeMedium' },
     { label: 'A', size: 24, a11yKey: 'a11yTextSizeLarge' },
+];
+
+const SWATCHES: {key: ThemeColor; light: string; dark: string; name: string}[] = [
+    {key: 'green',  light: '#3A6B38', dark: '#9FD49C',  name: 'Forest'},
+    {key: 'blue',   light: '#0057A8', dark: '#ADC6FF',  name: 'Ocean'},
+    {key: 'red',    light: '#9B1919', dark: '#FFB4AB',  name: 'Crimson'},
+    {key: 'amber',  light: '#8B5000', dark: '#FFB961',  name: 'Sunset'},
+    {key: 'purple', light: '#6B3FA0', dark: '#D4BBFF',  name: 'Lavender'},
 ];
 
 const THEME_MODE_DEFS: { label: string; value: ThemeMode; a11yKey: string }[] = [
@@ -119,6 +127,8 @@ export default function SettingsScreen() {
     const {
         themeMode,
         setThemeMode,
+        themeColor,
+        setThemeColor,
         fontSize,
         setFontSize,
         bibleVersion,
@@ -220,6 +230,33 @@ export default function SettingsScreen() {
                         value={String(fontSize)}
                         onChange={v => setFontSize(Number(v))}
                     />
+                </M3Card>
+
+                {/* ACCENT COLOR */}
+                <SectionLabel label={t('themeColor')} />
+                <M3Card variant="filled" style={styles.sectionCard}>
+                    <View style={styles.swatchContainer}>
+                        {SWATCHES.map(s => {
+                            const isSelected = themeColor === s.key;
+                            const swatchColor = isDark ? s.dark : s.light;
+                            return (
+                                <TouchableOpacity
+                                    key={s.key}
+                                    onPress={() => setThemeColor(s.key)}
+                                    accessibilityLabel={s.name}
+                                    accessibilityState={{selected: isSelected}}
+                                    style={[
+                                        styles.swatch,
+                                        {backgroundColor: swatchColor},
+                                        isSelected && {
+                                            borderWidth: 3,
+                                            borderColor: colors.onSurface,
+                                        },
+                                    ]}
+                                />
+                            );
+                        })}
+                    </View>
                 </M3Card>
 
                 {/* THEME */}
@@ -505,6 +542,18 @@ const styles = StyleSheet.create({
     },
     sectionCard: {
         padding: spacing.sm,
+    },
+    swatchContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-around',
+        paddingVertical: spacing.sm,
+        paddingHorizontal: spacing.md,
+    },
+    swatch: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
     },
     notifCard: {
         overflow: 'hidden',
