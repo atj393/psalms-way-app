@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ScrollView, StyleSheet} from 'react-native';
+import {DeviceEventEmitter, ScrollView, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -10,6 +10,7 @@ import Navigation from '../components/Navigation';
 import ChapterScreen from './ChapterScreen';
 import ChapterVerseScreen from './ChapterVerseScreen';
 import type {RootStackParamList} from '../App';
+import {NOTIF_PRESS_EVENT, type NotifPressPayload} from '../notificationEvents';
 import {checkAndUpdateStreak} from '../services/streakService';
 import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
@@ -103,21 +104,35 @@ export default function HomeScreen() {
     isFavorite(chapter).then(setIsFav).catch(() => {});
   }, [chapter]);
 
-  // React to notification taps (all cases: cold-start, background, foreground).
-  // App.tsx calls navigationRef.navigate('Home', {chapter, verse}) which updates
-  // route.params. Watching the params here is reliable because it works even
-  // when HomeScreen is already the active screen — React Navigation always
-  // updates params on navigate(), and this effect fires on every change.
-  const notifChapterParam = route.params?.chapter;
-  const notifVerseParam = route.params?.verse;
+  /**
+   * Handle notification verse taps — all three cases:
+   *   Cold start   → App.tsx's getInitialNotification() resolves (macrotask) →
+   *                  listener below is already registered → event received ✓
+   *   Background   → App.tsx's onForegroundEvent fires → event emitted →
+   *                  listener below is registered → event received ✓
+   *   Foreground   → same as background ✓
+   *
+   * DeviceEventEmitter is used instead of route.params because:
+   *   - It fires unconditionally on every emit, regardless of value equality.
+   *   - route.params useEffect only fires when the param VALUE changes, so
+   *     tapping a notification for the same chapter as the current one would
+   *     be silently ignored.
+   */
   useEffect(() => {
-    if (!notifChapterParam) return;
-    setChapter(notifChapterParam);
-    setHighlightVerse(notifVerseParam ?? 0);
-    setSubScreen('verse');
-    scrollRef.current?.scrollTo({y: 0, animated: false});
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifChapterParam, notifVerseParam]);
+    const sub = DeviceEventEmitter.addListener(
+      NOTIF_PRESS_EVENT,
+      ({chapter: notifChapter, verse: notifVerse}: NotifPressPayload) => {
+        console.log(
+          `[Home] Notification press received → chapter=${notifChapter} verse=${notifVerse}`,
+        );
+        setChapter(notifChapter);
+        setHighlightVerse(notifVerse);
+        setSubScreen('verse');
+        scrollRef.current?.scrollTo({y: 0, animated: false});
+      },
+    );
+    return () => sub.remove();
+  }, []);
 
   const scrollTop = () => scrollRef.current?.scrollTo({y: 0, animated: false});
 

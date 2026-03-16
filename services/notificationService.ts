@@ -1,5 +1,6 @@
 import notifee, {
   AndroidImportance,
+  AndroidStyle,
   EventType,
   RepeatFrequency,
   TriggerType,
@@ -21,7 +22,6 @@ export async function createNotificationChannel(): Promise<void> {
 
 export async function requestNotificationPermission(): Promise<boolean> {
   const settings = await notifee.requestPermission();
-  // authorizationStatus >= 1 means granted
   return settings.authorizationStatus >= 1;
 }
 
@@ -32,37 +32,47 @@ export async function scheduleDailyNotification(
 ): Promise<void> {
   await createNotificationChannel();
 
-  // Pick a random verse for the notification
+  // Pick a random chapter and verse for the notification
   const chapter = Math.floor(Math.random() * 150) + 1;
   const result = getRandomVerse(chapter, version);
-  if (!result) return;
+  if (!result) {
+    console.warn('[NotifService] getRandomVerse returned null for chapter', chapter);
+    return;
+  }
 
   const {verse, verseNumber} = result;
-  const body = verse.length > 120 ? verse.slice(0, 120) + '…' : verse;
+  console.log(
+    `[NotifService] Scheduling daily notif — Psalm ${chapter}:${verseNumber}`,
+    `"${verse.slice(0, 60)}…"`,
+  );
 
-  // Calculate the next trigger time
+  // Calculate next trigger time
   const now = new Date();
   const trigger = new Date();
   trigger.setHours(hour, minute, 0, 0);
   if (trigger.getTime() <= now.getTime()) {
-    // Time has already passed today — schedule for tomorrow
     trigger.setDate(trigger.getDate() + 1);
   }
 
-  // Cancel any previously scheduled daily notifications
   await cancelDailyNotification();
 
   await notifee.createTriggerNotification(
     {
       id: DAILY_NOTIF_ID,
       title: `Psalm ${chapter}:${verseNumber}`,
-      body,
+      // Show full verse text in compact mode; Android truncates automatically.
+      body: verse,
       android: {
         channelId: CHANNEL_ID,
-        pressAction: {id: 'default'},
+        // launchActivity: 'default' is REQUIRED for getInitialNotification()
+        // to work on cold-start (Notifee needs to tag the Android Intent).
+        pressAction: {id: 'default', launchActivity: 'default'},
         smallIcon: 'ic_launcher',
+        // BigText style lets the notification expand to show the full verse.
+        style: {type: AndroidStyle.BIGTEXT, text: verse},
       },
       data: {
+        // Store as strings — notification data values must be strings.
         chapter: String(chapter),
         verse: String(verseNumber),
       },
@@ -73,10 +83,14 @@ export async function scheduleDailyNotification(
       repeatFrequency: RepeatFrequency.DAILY,
     },
   );
+
+  console.log(
+    `[NotifService] Scheduled for ${trigger.toLocaleTimeString()} — data: chapter=${chapter} verse=${verseNumber}`,
+  );
 }
 
 export async function cancelDailyNotification(): Promise<void> {
-  // Only cancel the daily verse notification — do NOT touch challenge notifications
+  // Only cancel the daily verse notification — do NOT touch challenge notifications.
   await notifee.cancelTriggerNotification(DAILY_NOTIF_ID);
 }
 
@@ -106,8 +120,6 @@ export async function scheduleChallengeNotification(
 ): Promise<void> {
   await createChallengeChannel();
 
-  const body = verseText.length > 120 ? verseText.slice(0, 120) + '…' : verseText;
-
   const now = new Date();
   const trigger = new Date();
   trigger.setHours(hour, minute, 0, 0);
@@ -115,18 +127,19 @@ export async function scheduleChallengeNotification(
     trigger.setDate(trigger.getDate() + 1);
   }
 
-  // Cancel any previous notification for this challenge
   await cancelChallengeNotification(challengeId);
 
   await notifee.createTriggerNotification(
     {
       id: `${CHALLENGE_NOTIF_PREFIX}${challengeId}`,
       title: challengeName,
-      body,
+      body: verseText,
       android: {
         channelId: CHALLENGE_CHANNEL_ID,
-        pressAction: {id: 'default'},
+        // launchActivity required for getInitialNotification() on cold-start.
+        pressAction: {id: 'default', launchActivity: 'default'},
         smallIcon: 'ic_launcher',
+        style: {type: AndroidStyle.BIGTEXT, text: verseText},
       },
       data: {
         challengeId,
