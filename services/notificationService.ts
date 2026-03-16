@@ -9,6 +9,7 @@ import {getRandomVerse} from './psalmsService';
 import type {BibleVersion} from '../context/AppSettingsContext';
 
 const CHANNEL_ID = 'daily_verse';
+const DAILY_NOTIF_ID = 'daily_verse_notif';
 
 export async function createNotificationChannel(): Promise<void> {
   await notifee.createChannel({
@@ -53,6 +54,7 @@ export async function scheduleDailyNotification(
 
   await notifee.createTriggerNotification(
     {
+      id: DAILY_NOTIF_ID,
       title: `Psalm ${chapter}:${verseNumber}`,
       body,
       android: {
@@ -74,8 +76,8 @@ export async function scheduleDailyNotification(
 }
 
 export async function cancelDailyNotification(): Promise<void> {
-  const ids = await notifee.getTriggerNotificationIds();
-  await Promise.all(ids.map(id => notifee.cancelTriggerNotification(id)));
+  // Only cancel the daily verse notification — do NOT touch challenge notifications
+  await notifee.cancelTriggerNotification(DAILY_NOTIF_ID);
 }
 
 export async function getScheduledNotifications(): Promise<TriggerNotification[]> {

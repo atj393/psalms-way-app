@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {DeviceEventEmitter, ScrollView, StyleSheet} from 'react-native';
+import {ScrollView, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -10,7 +10,6 @@ import Navigation from '../components/Navigation';
 import ChapterScreen from './ChapterScreen';
 import ChapterVerseScreen from './ChapterVerseScreen';
 import type {RootStackParamList} from '../App';
-import {NOTIF_PRESS_EVENT, type NotifPressPayload} from '../notificationEvents';
 import {checkAndUpdateStreak} from '../services/streakService';
 import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
@@ -104,22 +103,21 @@ export default function HomeScreen() {
     isFavorite(chapter).then(setIsFav).catch(() => {});
   }, [chapter]);
 
-  // React to notification taps (foreground, background, and cold-start cases).
-  // DeviceEventEmitter is used instead of route.params so updates are always
-  // applied even when Home is already the active screen (navigate to the same
-  // screen can be a no-op in React Navigation's native stack navigator).
+  // React to notification taps (all cases: cold-start, background, foreground).
+  // App.tsx calls navigationRef.navigate('Home', {chapter, verse}) which updates
+  // route.params. Watching the params here is reliable because it works even
+  // when HomeScreen is already the active screen — React Navigation always
+  // updates params on navigate(), and this effect fires on every change.
+  const notifChapterParam = route.params?.chapter;
+  const notifVerseParam = route.params?.verse;
   useEffect(() => {
-    const sub = DeviceEventEmitter.addListener(
-      NOTIF_PRESS_EVENT,
-      ({chapter: notifChapter, verse: notifVerse}: NotifPressPayload) => {
-        setChapter(notifChapter);
-        setHighlightVerse(notifVerse);
-        setSubScreen('verse');
-        scrollRef.current?.scrollTo({y: 0, animated: false});
-      },
-    );
-    return () => sub.remove();
-  }, []);
+    if (!notifChapterParam) return;
+    setChapter(notifChapterParam);
+    setHighlightVerse(notifVerseParam ?? 0);
+    setSubScreen('verse');
+    scrollRef.current?.scrollTo({y: 0, animated: false});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [notifChapterParam, notifVerseParam]);
 
   const scrollTop = () => scrollRef.current?.scrollTo({y: 0, animated: false});
 
