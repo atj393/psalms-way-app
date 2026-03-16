@@ -4,6 +4,7 @@
   "appearance": "Appearance",
   "textSize": "TEXT SIZE",
   "theme": "THEME",
+  "themeColor": "ACCENT COLOR",
   "themeAuto": "Auto",
   "themeLight": "Light",
   "themeDark": "Dark",
@@ -170,5 +171,21 @@
   "fallbackTitle": "Language or Bible Version",
   "fallbackBibleMessage": "We couldn't find a Bible in your phone's language, so the English KJV was opened. You can choose another version in Settings.",
   "fallbackLangMessage": "Your phone's language isn't fully supported yet. English is used as a fallback. You can change it in Settings.",
-  "fallbackBothMessage": "Your phone's language isn't fully supported, and no Bible was found in that language. English and the KJV Bible were opened. You can change both in Settings."
+  "fallbackBothMessage": "Your phone's language isn't fully supported, and no Bible was found in that language. English and the KJV Bible were opened. You can change both in Settings.",
+
+  "onboardWelcomeTitle": "Welcome to Psalms Way",
+  "onboardWelcomeDesc": "All 150 Psalms in one beautiful app. Read, reflect, and grow in your faith journey.",
+  "onboardNotifTitle": "Daily Verse Reminders",
+  "onboardNotifDesc": "Get a new psalm verse delivered to you every day. Enable notifications in Settings to build your daily rhythm.",
+  "onboardChallengesTitle": "Reading Challenges",
+  "onboardChallengesDesc": "Follow guided plans like '40 Days of Testing' or 'Praise Journey'. Read psalms one day at a time with purpose.",
+  "onboardLibraryTitle": "Your Personal Library",
+  "onboardLibraryDesc": "Bookmark verses, write notes, add highlights, and revisit your reading history — all in one place.",
+  "onboardBadgesTitle": "Streaks & Badges",
+  "onboardBadgesDesc": "Build a daily reading streak and unlock achievement badges. Track your progress with detailed reading stats.",
+  "onboardReadyTitle": "You're All Set!",
+  "onboardReadyDesc": "Tap the ⌃ arrow in the bottom bar anytime to open Library, Stats, Badges, and Challenges.",
+  "onboardNext": "Next",
+  "onboardGetStarted": "Get Started",
+  "onboardSkip": "Skip"
 }
