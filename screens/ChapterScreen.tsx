@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
     FlatList,
@@ -49,6 +49,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
 
     const [verses, setVerses] = useState<string[]>([]);
     const [verseStates, setVerseStates] = useState<Record<number, VerseState>>({});
+    const listRef = useRef<FlatList>(null);
 
     // Modal state
     const [actionSheet, setActionSheet] = useState<ActionSheet>(null);
@@ -57,6 +58,8 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
     useEffect(() => {
         setVerses(getChapter(chapter, bibleVersion));
         setVerseStates({});
+        // Always scroll to top when chapter changes
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
     }, [chapter, bibleVersion]);
 
     const loadVerseState = useCallback(
@@ -155,6 +158,7 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
     return (
         <>
             <FlatList
+                ref={listRef}
                 data={verses}
                 keyExtractor={(_, i) => String(i)}
                 style={[styles.list, { backgroundColor: colors.background }]}

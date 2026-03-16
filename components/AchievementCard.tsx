@@ -9,9 +9,15 @@ import {
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useTheme, shape, spacing} from '../theme';
-import {M3FilledButton} from './M3';
+import {M3FilledButton, M3TonalButton} from './M3';
 
-export type AchievementType = 'badge' | 'challenge';
+export type AchievementType = 'badge' | 'challenge' | 'info';
+
+export type AchievementAction = {
+  label: string;
+  onPress: () => void;
+  variant?: 'filled' | 'tonal';
+};
 
 type Props = {
   visible: boolean;
@@ -20,6 +26,13 @@ type Props = {
   title: string;
   description: string;
   onDismiss: () => void;
+  /** Override the default headline computed from `type` */
+  headline?: string;
+  /**
+   * When provided, renders these buttons instead of the default "Awesome!" button.
+   * Use for multi-action cards like the fallback notification.
+   */
+  actions?: AchievementAction[];
 };
 
 export default function AchievementCard({
@@ -29,6 +42,8 @@ export default function AchievementCard({
   title,
   description,
   onDismiss,
+  headline: headlineProp,
+  actions,
 }: Props) {
   const {t} = useTranslation();
   const {colors, type: typography} = useTheme();
@@ -54,20 +69,27 @@ export default function AchievementCard({
           useNativeDriver: true,
         }),
       ]).start(() => {
-        // Pulse the icon gently
-        Animated.loop(
-          Animated.sequence([
-            Animated.timing(pulseAnim, {toValue: 1.15, duration: 600, useNativeDriver: true}),
-            Animated.timing(pulseAnim, {toValue: 1, duration: 600, useNativeDriver: true}),
-          ]),
-          {iterations: 3},
-        ).start();
+        // Only pulse the icon for badge/challenge, not info
+        if (type !== 'info') {
+          Animated.loop(
+            Animated.sequence([
+              Animated.timing(pulseAnim, {toValue: 1.15, duration: 600, useNativeDriver: true}),
+              Animated.timing(pulseAnim, {toValue: 1, duration: 600, useNativeDriver: true}),
+            ]),
+            {iterations: 3},
+          ).start();
+        }
       });
     }
-  }, [visible, scaleAnim, opacityAnim, pulseAnim]);
+  }, [visible, scaleAnim, opacityAnim, pulseAnim, type]);
 
-  const headline =
-    type === 'badge' ? t('achievementUnlocked') : t('challengeFinished');
+  const computedHeadline =
+    headlineProp ??
+    (type === 'badge'
+      ? t('achievementUnlocked')
+      : type === 'challenge'
+      ? t('challengeFinished')
+      : t('fallbackTitle', {defaultValue: 'Language or Bible Version'}));
 
   return (
     <Modal
@@ -76,10 +98,11 @@ export default function AchievementCard({
       animationType="none"
       statusBarTranslucent
       onRequestClose={onDismiss}>
+      {/* Backdrop — tapping it dismisses badge/challenge but NOT info (requires explicit action) */}
       <TouchableOpacity
         style={[styles.backdrop, {backgroundColor: 'rgba(0,0,0,0.55)'}]}
         activeOpacity={1}
-        onPress={onDismiss}
+        onPress={type === 'info' ? undefined : onDismiss}
       />
       <View style={styles.center} pointerEvents="box-none">
         <Animated.View
@@ -99,12 +122,15 @@ export default function AchievementCard({
               typography.labelLarge,
               {color: colors.primary, letterSpacing: 1.2, marginBottom: spacing.sm},
             ]}>
-            {headline.toUpperCase()}
+            {computedHeadline.toUpperCase()}
           </Text>
 
           {/* Big emoji icon */}
           <Animated.Text
-            style={[styles.emoji, {transform: [{scale: pulseAnim}]}]}>
+            style={[
+              styles.emoji,
+              type !== 'info' ? {transform: [{scale: pulseAnim}]} : undefined,
+            ]}>
             {icon}
           </Animated.Text>
 
@@ -121,17 +147,44 @@ export default function AchievementCard({
           <Text
             style={[
               typography.bodyMedium,
-              {color: colors.onSurfaceVariant, textAlign: 'center', marginTop: spacing.sm},
+              {
+                color: colors.onSurfaceVariant,
+                textAlign: 'center',
+                marginTop: spacing.sm,
+                lineHeight: 22,
+              },
             ]}>
             {description}
           </Text>
 
-          {/* Dismiss button */}
-          <M3FilledButton
-            label={t('awesome')}
-            onPress={onDismiss}
-            style={styles.button}
-          />
+          {/* Buttons */}
+          {actions && actions.length > 0 ? (
+            <View style={styles.actionsRow}>
+              {actions.map((action, i) =>
+                action.variant === 'tonal' ? (
+                  <M3TonalButton
+                    key={i}
+                    label={action.label}
+                    onPress={action.onPress}
+                    style={styles.actionBtn}
+                  />
+                ) : (
+                  <M3FilledButton
+                    key={i}
+                    label={action.label}
+                    onPress={action.onPress}
+                    style={styles.actionBtn}
+                  />
+                ),
+              )}
+            </View>
+          ) : (
+            <M3FilledButton
+              label={t('awesome')}
+              onPress={onDismiss}
+              style={styles.button}
+            />
+          )}
         </Animated.View>
       </View>
     </Modal>
@@ -161,5 +214,13 @@ const styles = StyleSheet.create({
   button: {
     marginTop: spacing.xl,
     minWidth: 160,
+  },
+  actionsRow: {
+    marginTop: spacing.xl,
+    width: '100%',
+    gap: spacing.sm,
+  },
+  actionBtn: {
+    width: '100%',
   },
 });

@@ -2,6 +2,7 @@ import React, {createContext, useContext, useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type {ThemeMode} from '../theme';
 import i18n, {getDeviceLanguage} from '../i18n';
+import {runAutoSetup} from '../services/autoSetupService';
 
 const STORAGE_KEY = 'appSettings';
 
@@ -54,12 +55,24 @@ export function AppSettingsProvider({children}: {children: React.ReactNode}) {
   const [settings, setSettings] = useState<AppSettings>(defaults);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY).then(raw => {
-      if (!raw) return;
+    AsyncStorage.getItem(STORAGE_KEY).then(async raw => {
+      if (!raw) {
+        // ── First launch: auto-detect language & Bible ─────────────────────
+        const result = await runAutoSetup();
+        if (result) {
+          const initial: AppSettings = {...defaults, bibleVersion: result.bibleVersion};
+          setSettings(initial);
+          AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(initial));
+        }
+        // i18n is already initialised to device language in i18n/index.ts
+        return;
+      }
+
+      // ── Subsequent launches: restore saved settings ──────────────────────
       try {
         const parsed = JSON.parse(raw) as Partial<AppSettings>;
         setSettings(prev => ({...prev, ...parsed}));
-        // Apply saved language to i18n so it persists across app restarts
+        // Re-apply saved language to i18n
         const savedLang = parsed.language;
         const resolved = savedLang === 'auto' || !savedLang
           ? getDeviceLanguage()

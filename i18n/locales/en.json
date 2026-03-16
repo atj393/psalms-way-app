@@ -107,6 +107,8 @@
   "badges": "Badges",
   "challenges": "Challenges",
   "badgesTitle": "Reading Badges",
+  "badgesEarned": "Earned",
+  "badgesLocked": "Locked",
   "challengesTitle": "Bible Challenges",
   "badgeLocked": "Keep reading to unlock",
   "challengeStart": "Start Challenge",
@@ -163,5 +165,10 @@
   "challengeNotStarted": "Start this challenge to begin your journey",
   "challengeAlreadyDone": "Already read today — come back tomorrow!",
   "challengePastDays": "Completed Days",
-  "challengeRestart": "Start Again"
+  "challengeRestart": "Start Again",
+
+  "fallbackTitle": "Language or Bible Version",
+  "fallbackBibleMessage": "We couldn't find a Bible in your phone's language, so the English KJV was opened. You can choose another version in Settings.",
+  "fallbackLangMessage": "Your phone's language isn't fully supported yet. English is used as a fallback. You can change it in Settings.",
+  "fallbackBothMessage": "Your phone's language isn't fully supported, and no Bible was found in that language. English and the KJV Bible were opened. You can change both in Settings."
 }
