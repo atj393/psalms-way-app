@@ -1,4 +1,5 @@
 import React, {useEffect, useRef} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import {createNavigationContainerRef, NavigationContainer} from '@react-navigation/native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
@@ -18,6 +19,8 @@ import ChallengesScreen from './screens/ChallengesScreen';
 import ChallengeDetailScreen from './screens/ChallengeDetailScreen';
 import notifee, {EventType} from '@notifee/react-native';
 import type {ChallengeId} from './services/challengesService';
+import {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
+export {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
 
 export type RootStackParamList = {
   Home: {chapter?: number; verse?: number} | undefined;
@@ -37,63 +40,119 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// ─── Pending navigation for cold-start (before NavigationContainer is ready) ─
-type PendingVerse = {chapter: number; verse: number; challengeId?: undefined};
-type PendingChallenge = {challengeId: ChallengeId; chapter?: undefined; verse?: undefined};
-
 export default function App() {
-  const pendingNav = useRef<PendingVerse | PendingChallenge | null>(null);
+  /**
+   * Stores pending navigation when the NavigationContainer is not yet ready.
+   * This is for the extremely rare cold-start case where JS finishes before
+   * the navigation container has initialised (in practice, getInitialNotification
+   * always resolves after onReady, so pendingNav is almost never used for verses).
+   */
+  const pendingNav = useRef<
+    | {chapter: number; verse: number; challengeId?: undefined}
+    | {challengeId: ChallengeId; chapter?: undefined; verse?: undefined}
+    | null
+  >(null);
 
   useEffect(() => {
+    // ─── Helpers ────────────────────────────────────────────────────────────
+
     /**
-     * Navigate to the verse that was shown in the notification.
-     * Uses React Navigation params instead of DeviceEventEmitter so it works
-     * reliably for all three cases:
-     *   1. Cold start  — getInitialNotification resolves after onReady
-     *   2. Background  — onForegroundEvent fires when app comes to foreground
-     *   3. Foreground  — onForegroundEvent fires while app is open
+     * Validate and dispatch a verse notification press to HomeScreen.
      *
-     * HomeScreen watches route.params changes via a useEffect, so it always
-     * reacts even when it's the currently active screen.
+     * Architecture: DeviceEventEmitter is the reliable cross-case mechanism:
+     *
+     *   Cold start: getInitialNotification() resolves as a JS macrotask, which
+     *     always runs AFTER useEffect hooks have run in the component tree.
+     *     HomeScreen's DeviceEventEmitter listener is therefore already registered
+     *     by the time the event is emitted. ✓
+     *
+     *   Background → foreground: onForegroundEvent fires while HomeScreen is
+     *     already mounted and its listener is registered. ✓
+     *
+     *   Foreground: same as background. ✓
+     *
+     * We do NOT rely on navigationRef.navigate('Home', params) for verse
+     * navigation because React Navigation merges params — if the incoming
+     * chapter/verse happens to be the same as the currently stored params,
+     * the route.params object reference doesn't change and route-watching
+     * useEffects in HomeScreen would not re-fire. DeviceEventEmitter emits
+     * unconditionally and is not subject to value-equality checks.
      */
-    function navigateToVerse(chapter: number, verse: number) {
-      if (!chapter || isNaN(chapter)) return;
-      if (navigationRef.isReady()) {
-        navigationRef.navigate('Home', {chapter, verse});
-      } else {
-        // NavigationContainer not ready yet — queue and replay in onReady
-        pendingNav.current = {chapter, verse};
+    function dispatchVersePress(chapter: number, verse: number): void {
+      // Validate
+      if (!chapter || isNaN(chapter) || chapter < 1 || chapter > 150) {
+        console.warn('[App] dispatchVersePress: invalid chapter', chapter, '— ignoring');
+        return;
       }
+      if (!verse || isNaN(verse) || verse < 1) {
+        console.warn('[App] dispatchVersePress: invalid verse', verse, '— ignoring');
+        return;
+      }
+
+      console.log(`[App] Dispatching verse press → chapter=${chapter} verse=${verse}`);
+      DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {chapter, verse} as NotifPressPayload);
     }
 
-    function handleNotifData(data: Record<string, string>) {
+    function handleNotifData(data: Record<string, string>, source: string): void {
+      console.log(`[App] handleNotifData from "${source}":`, JSON.stringify(data));
+
       if (data.challengeId) {
+        // Challenge notification tap → navigate to challenge detail screen
         const cid = data.challengeId as ChallengeId;
+        console.log('[App] Challenge notification → challengeId:', cid);
         if (navigationRef.isReady()) {
           navigationRef.navigate('ChallengeDetail', {challengeId: cid});
         } else {
           pendingNav.current = {challengeId: cid};
         }
       } else {
-        navigateToVerse(Number(data.chapter), Number(data.verse));
+        // Daily verse notification tap
+        const chapter = Number(data.chapter);
+        const verse = Number(data.verse);
+        console.log(`[App] Daily verse notification → chapter=${chapter} verse=${verse}`);
+        dispatchVersePress(chapter, verse);
       }
     }
 
-    // ── Foreground / background notification press ───────────────────────────
+    // ── Foreground & background notification press ───────────────────────────
+    // onForegroundEvent fires whenever the app is visible (or becomes visible)
+    // and the user presses a notification.
     const unsubscribe = notifee.onForegroundEvent(({type, detail}) => {
+      console.log('[App] onForegroundEvent type:', type);
       if (type === EventType.PRESS && detail.notification?.data) {
-        handleNotifData(detail.notification.data as Record<string, string>);
+        handleNotifData(
+          detail.notification.data as Record<string, string>,
+          'onForegroundEvent',
+        );
       }
     });
 
     // ── Cold-start notification press ────────────────────────────────────────
-    // getInitialNotification() resolves asynchronously. By then onReady has
-    // already fired and navigationRef.isReady() is true, so navigateToVerse
-    // calls navigationRef.navigate directly (no pendingNav needed here).
+    // getInitialNotification() is ONLY non-null when the app was fully killed
+    // and then launched by tapping a notification.
+    //
+    // IMPORTANT: This resolves as a JS macrotask, meaning it resolves AFTER all
+    // useEffect hooks have run. By then HomeScreen's DeviceEventEmitter listener
+    // is registered and will receive the emitted event.
+    //
+    // REQUIREMENT: pressAction must have launchActivity: 'default' in the
+    // notification (see notificationService.ts) for this to return non-null.
     notifee.getInitialNotification().then(initial => {
-      if (initial?.notification.data) {
-        handleNotifData(initial.notification.data as Record<string, string>);
+      if (initial) {
+        console.log('[App] getInitialNotification: found notification id=', initial.notification.id);
+        if (initial.notification.data) {
+          handleNotifData(
+            initial.notification.data as Record<string, string>,
+            'getInitialNotification',
+          );
+        } else {
+          console.warn('[App] getInitialNotification: notification has no data payload');
+        }
+      } else {
+        console.log('[App] getInitialNotification: null (normal open, not from notification)');
       }
+    }).catch(err => {
+      console.error('[App] getInitialNotification error:', err);
     });
 
     return unsubscribe;
@@ -106,16 +165,21 @@ export default function App() {
           <NavigationContainer
             ref={navigationRef}
             onReady={() => {
-              // Replay any navigation that was queued before the container was ready.
-              // In practice this only fires if a notification is tapped before the
-              // JS bundle has fully initialised (extremely rare).
+              console.log('[App] NavigationContainer ready');
               const nav = pendingNav.current;
               pendingNav.current = null;
               if (!nav) return;
               if (nav.challengeId) {
+                console.log('[App] Replaying pending challenge nav:', nav.challengeId);
                 navigationRef.navigate('ChallengeDetail', {challengeId: nav.challengeId});
               } else if (nav.chapter) {
-                navigationRef.navigate('Home', {chapter: nav.chapter, verse: nav.verse ?? 0});
+                // For the verse case, re-emit via DeviceEventEmitter (same path
+                // as normal) rather than using navigate params.
+                console.log('[App] Replaying pending verse nav:', nav.chapter, nav.verse);
+                DeviceEventEmitter.emit(NOTIF_PRESS_EVENT, {
+                  chapter: nav.chapter,
+                  verse: nav.verse,
+                } as NotifPressPayload);
               }
             }}>
             <Stack.Navigator screenOptions={{headerShown: false}}>
