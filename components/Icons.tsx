@@ -27,7 +27,8 @@ export type IconName =
     | 'circle-outline'
     | 'play-arrow'
     | 'trophy'
-    | 'more-horiz';
+    | 'more-horiz'
+    | 'expand-less';
 
 const svgs: Record<IconName, string> = {
     settings: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
@@ -107,6 +108,9 @@ const svgs: Record<IconName, string> = {
   </svg>`,
   'more-horiz': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
     <path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/>
+  </svg>`,
+  'expand-less': `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M12 8l-6 6 1.41 1.41L12 10.83l4.59 4.58L18 14z"/>
   </svg>`,
 };
 

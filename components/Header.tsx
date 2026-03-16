@@ -12,7 +12,6 @@ type Props = {
   isFavorite: boolean;
   onSettingsPress: () => void;
   onSearchPress: () => void;
-  onMorePress: () => void;
   onFavoritePress: () => void;
 };
 
@@ -23,7 +22,6 @@ export default function Header({
   isFavorite,
   onSettingsPress,
   onSearchPress,
-  onMorePress,
   onFavoritePress,
 }: Props) {
   const {t} = useTranslation();
@@ -51,9 +49,6 @@ export default function Header({
         <View style={styles.iconGroup}>
           <M3IconButton onPress={onSearchPress} accessibilityLabel={t('a11ySearchPsalms')}>
             <Icons name="search" size={22} color={iconColor} />
-          </M3IconButton>
-          <M3IconButton onPress={onMorePress} accessibilityLabel="More">
-            <Icons name="more-horiz" size={22} color={iconColor} />
           </M3IconButton>
           <M3IconButton onPress={onSettingsPress} accessibilityLabel={t('a11yOpenSettings')}>
             <Icons name="settings" size={22} color={iconColor} />

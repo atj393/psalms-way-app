@@ -12,6 +12,7 @@ type Props = {
   onPrevChapter: () => void;
   onNextChapter: () => void;
   onOpenChapterSelect: () => void;
+  onMorePress: () => void;
 };
 
 export default function Navigation({
@@ -20,6 +21,7 @@ export default function Navigation({
   onPrevChapter,
   onNextChapter,
   onOpenChapterSelect,
+  onMorePress,
 }: Props) {
   const {t} = useTranslation();
   const {colors} = useTheme();
@@ -37,13 +39,19 @@ export default function Navigation({
       <M3Divider />
 
       <View style={styles.inner}>
-        {/* Row 1: Primary filled buttons */}
+        {/* Row 1: New Verse · More ↑ · New Chapter */}
         <View style={styles.row}>
           <M3FilledButton
             label={t('newVerse')}
             onPress={onNewVerse}
             style={styles.flex}
           />
+          <M3IconButton
+            onPress={onMorePress}
+            accessibilityLabel="More"
+            style={styles.moreBtn}>
+            <Icons name="expand-less" size={26} color={colors.primary} />
+          </M3IconButton>
           <M3FilledButton
             label={t('newChapter')}
             onPress={onNewChapter}
@@ -92,6 +100,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   chapterIconBtn: {
+    width: 48,
+    height: 40,
+    borderRadius: 9999,
+  },
+  moreBtn: {
     width: 48,
     height: 40,
     borderRadius: 9999,
