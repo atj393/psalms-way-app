@@ -12,11 +12,8 @@ type Props = {
   isFavorite: boolean;
   onSettingsPress: () => void;
   onSearchPress: () => void;
-  onLibraryPress: () => void;
+  onMorePress: () => void;
   onFavoritePress: () => void;
-  onStatsPress: () => void;
-  onBadgesPress: () => void;
-  onChallengesPress: () => void;
 };
 
 export default function Header({
@@ -26,11 +23,8 @@ export default function Header({
   isFavorite,
   onSettingsPress,
   onSearchPress,
-  onLibraryPress,
+  onMorePress,
   onFavoritePress,
-  onStatsPress,
-  onBadgesPress,
-  onChallengesPress,
 }: Props) {
   const {t} = useTranslation();
   const {colors, type, isDark} = useTheme();
@@ -49,7 +43,7 @@ export default function Header({
         {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
       ]}>
 
-      {/* Row 1: App title (smaller) + utility icons */}
+      {/* Row 1: App title + 3 utility icons */}
       <View style={styles.row}>
         <Text style={[type.titleSmall, {color: colors.onSurfaceVariant}]}>
           Psalms Way
@@ -58,17 +52,8 @@ export default function Header({
           <M3IconButton onPress={onSearchPress} accessibilityLabel={t('a11ySearchPsalms')}>
             <Icons name="search" size={22} color={iconColor} />
           </M3IconButton>
-          <M3IconButton onPress={onStatsPress} accessibilityLabel={t('a11yReadingStats')}>
-            <Icons name="insights" size={22} color={iconColor} />
-          </M3IconButton>
-          <M3IconButton onPress={onBadgesPress} accessibilityLabel={t('badges')}>
-            <Icons name="trophy" size={22} color={iconColor} />
-          </M3IconButton>
-          <M3IconButton onPress={onChallengesPress} accessibilityLabel={t('challenges')}>
-            <Icons name="check-circle" size={22} color={iconColor} />
-          </M3IconButton>
-          <M3IconButton onPress={onLibraryPress} accessibilityLabel={t('a11yOpenLibrary')}>
-            <Icons name="library" size={22} color={iconColor} />
+          <M3IconButton onPress={onMorePress} accessibilityLabel="More">
+            <Icons name="more-horiz" size={22} color={iconColor} />
           </M3IconButton>
           <M3IconButton onPress={onSettingsPress} accessibilityLabel={t('a11yOpenSettings')}>
             <Icons name="settings" size={22} color={iconColor} />
@@ -76,7 +61,7 @@ export default function Header({
         </View>
       </View>
 
-      {/* Row 2: Psalm reference (larger) + favorite */}
+      {/* Row 2: Psalm reference + favorite */}
       <View style={styles.row}>
         <Text
           style={[type.titleLarge, styles.psalmsRef, {color: colors.onSurface}]}

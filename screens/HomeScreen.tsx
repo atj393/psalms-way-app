@@ -5,6 +5,7 @@ import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native'
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useTheme, type SubScreen} from '../theme';
 import Header from '../components/Header';
+import MoreSheet from '../components/MoreSheet';
 import Navigation from '../components/Navigation';
 import ChapterScreen from './ChapterScreen';
 import ChapterVerseScreen from './ChapterVerseScreen';
@@ -16,8 +17,10 @@ import {toggleFavorite, isFavorite} from '../services/favoritesService';
 import {scheduleDailyNotification} from '../services/notificationService';
 import {useAppSettings} from '../context/AppSettingsContext';
 import {checkAndAwardBadges} from '../services/badgesService';
-import AchievementCard from '../components/AchievementCard';
+import AchievementCard, {type AchievementAction} from '../components/AchievementCard';
 import {useTranslation} from 'react-i18next';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {FALLBACK_NOTIF_KEY, type FallbackInfo} from '../services/autoSetupService';
 
 type HomeNavProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
 type HomeRoute = RouteProp<RootStackParamList, 'Home'>;
@@ -45,11 +48,19 @@ export default function HomeScreen() {
   const [highlightVerse, setHighlightVerse] = useState(initialVerse);
   const [streak, setStreak] = useState(0);
   const [isFav, setIsFav] = useState(false);
+  const [moreSheetVisible, setMoreSheetVisible] = useState(false);
   const scrollRef = useRef<ScrollView>(null);
   const {t} = useTranslation();
 
   // Achievement card state: null = hidden, object = show card
-  type Achievement = {type: 'badge' | 'challenge'; icon: string; title: string; description: string};
+  type Achievement = {
+    type: 'badge' | 'challenge' | 'info';
+    icon: string;
+    title: string;
+    description: string;
+    headline?: string;
+    actions?: AchievementAction[];
+  };
   const [achievement, setAchievement] = useState<Achievement | null>(null);
   const pendingAchievements = useRef<Achievement[]>([]);
 
@@ -178,9 +189,68 @@ export default function HomeScreen() {
     navigation.navigate('Settings');
   }, [navigation]);
 
+  // Check if a language/Bible fallback happened on first launch and show notification
+  useEffect(() => {
+    AsyncStorage.getItem(FALLBACK_NOTIF_KEY).then(raw => {
+      if (!raw) return;
+      AsyncStorage.removeItem(FALLBACK_NOTIF_KEY);
+      const info = JSON.parse(raw) as FallbackInfo;
+
+      const buildMessage = () => {
+        if (info.langFallback && info.bibleFallback) {
+          return t('fallbackBothMessage', {
+            defaultValue:
+              "Your phone's language isn't fully supported yet, and no Bible in that language was found. English and the KJV Bible were opened. You can change both in Settings.",
+          });
+        }
+        if (info.bibleFallback) {
+          return t('fallbackBibleMessage', {
+            defaultValue:
+              "We couldn't find a Bible in your phone's language, so the English KJV was opened. You can choose another version in Settings.",
+          });
+        }
+        return t('fallbackLangMessage', {
+          defaultValue:
+            "Your phone's language isn't fully supported yet. English is used as a fallback. You can change it in Settings.",
+        });
+      };
+
+      const card: Achievement = {
+        type: 'info',
+        icon: '🌐',
+        headline: t('fallbackTitle', {defaultValue: 'Language or Bible Version'}),
+        title: t('fallbackTitle', {defaultValue: 'Language or Bible Version'}),
+        description: buildMessage(),
+        actions: [
+          {
+            label: t('settings'),
+            onPress: () => {
+              setAchievement(null);
+              navigation.navigate('Settings');
+            },
+            variant: 'filled',
+          },
+          {
+            label: t('close'),
+            onPress: () => setAchievement(null),
+            variant: 'tonal',
+          },
+        ],
+      };
+
+      setTimeout(() => {
+        setAchievement(prev => prev ?? card);
+      }, 5000);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const openSearch = useCallback(() => {
     navigation.navigate('Search');
   }, [navigation]);
+
+  const openMore = useCallback(() => setMoreSheetVisible(true), []);
+  const closeMore = useCallback(() => setMoreSheetVisible(false), []);
 
   const openStats = useCallback(() => {
     navigation.navigate('Stats');
@@ -235,11 +305,8 @@ export default function HomeScreen() {
         isFavorite={isFav}
         onSettingsPress={openSettings}
         onSearchPress={openSearch}
-        onLibraryPress={openLibrary}
+        onMorePress={openMore}
         onFavoritePress={onFavoritePress}
-        onStatsPress={openStats}
-        onBadgesPress={openBadges}
-        onChallengesPress={openChallenges}
       />
 
       {subScreen === 'chapter' ? (
@@ -269,6 +336,15 @@ export default function HomeScreen() {
         onOpenChapterSelect={openChapterSelect}
       />
 
+      <MoreSheet
+        visible={moreSheetVisible}
+        onDismiss={closeMore}
+        onLibraryPress={openLibrary}
+        onStatsPress={openStats}
+        onBadgesPress={openBadges}
+        onChallengesPress={openChallenges}
+      />
+
       {achievement && (
         <AchievementCard
           visible={true}
@@ -276,6 +352,8 @@ export default function HomeScreen() {
           icon={achievement.icon}
           title={achievement.title}
           description={achievement.description}
+          headline={achievement.headline}
+          actions={achievement.actions}
           onDismiss={showNextAchievement}
         />
       )}
