@@ -318,7 +318,6 @@ export default function HomeScreen() {
         isFavorite={isFav}
         onSettingsPress={openSettings}
         onSearchPress={openSearch}
-        onMorePress={openMore}
         onFavoritePress={onFavoritePress}
       />
 
@@ -347,6 +346,7 @@ export default function HomeScreen() {
         onPrevChapter={onPrevChapter}
         onNextChapter={onNextChapter}
         onOpenChapterSelect={openChapterSelect}
+        onMorePress={openMore}
       />
 
       <MoreSheet
