@@ -250,25 +250,25 @@ export default function StatsScreen() {
                         />
                         <M3Divider style={styles.rowDivider} />
                         <StatRow
-                            label="Bookmarks"
+                            label={t('statBookmarks')}
                             value={data?.bookmarkCount ?? 0}
                             icon={<Icons name="bookmark" size={18} color={colors.onSurfaceVariant} />}
                         />
                         <M3Divider style={styles.rowDivider} />
                         <StatRow
-                            label="Highlights"
+                            label={t('statHighlights')}
                             value={data?.highlightCount ?? 0}
                             icon={<Icons name="highlight" size={18} color={colors.onSurfaceVariant} />}
                         />
                         <M3Divider style={styles.rowDivider} />
                         <StatRow
-                            label="Notes"
+                            label={t('statNotes')}
                             value={data?.noteCount ?? 0}
                             icon={<Icons name="note" size={18} color={colors.onSurfaceVariant} />}
                         />
                         <M3Divider style={styles.rowDivider} />
                         <StatRow
-                            label="Favorites"
+                            label={t('statFavorites')}
                             value={data?.favoriteCount ?? 0}
                             icon={<Icons name="star" size={18} color={colors.onSurfaceVariant} />}
                         />

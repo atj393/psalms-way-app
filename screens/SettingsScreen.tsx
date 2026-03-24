@@ -41,23 +41,23 @@ const FONT_SIZE_DEFS: { label: string; size: number; a11yKey: string }[] = [
     { label: 'A', size: 24, a11yKey: 'a11yTextSizeLarge' },
 ];
 
-const SWATCHES: {key: ThemeColor; light: string; dark: string; name: string}[] = [
-    {key: 'green',  light: '#3A6B38', dark: '#9FD49C',  name: 'Forest'},
-    {key: 'blue',   light: '#0057A8', dark: '#ADC6FF',  name: 'Ocean'},
-    {key: 'red',    light: '#9B1919', dark: '#FFB4AB',  name: 'Crimson'},
-    {key: 'amber',  light: '#8B5000', dark: '#FFB961',  name: 'Sunset'},
-    {key: 'purple', light: '#6B3FA0', dark: '#D4BBFF',  name: 'Lavender'},
+const SWATCHES: {key: ThemeColor; light: string; dark: string; labelKey: string}[] = [
+    {key: 'green',  light: '#3A6B38', dark: '#9FD49C',  labelKey: 'colorForest'},
+    {key: 'blue',   light: '#0057A8', dark: '#ADC6FF',  labelKey: 'colorOcean'},
+    {key: 'red',    light: '#9B1919', dark: '#FFB4AB',  labelKey: 'colorCrimson'},
+    {key: 'amber',  light: '#8B5000', dark: '#FFB961',  labelKey: 'colorSunset'},
+    {key: 'purple', light: '#6B3FA0', dark: '#D4BBFF',  labelKey: 'colorLavender'},
 ];
 
-const THEME_MODE_DEFS: { label: string; value: ThemeMode; a11yKey: string }[] = [
-    { label: 'Auto', value: 'auto', a11yKey: 'a11yThemeAuto' },
-    { label: 'Light', value: 'light', a11yKey: 'a11yThemeLight' },
-    { label: 'Dark', value: 'dark', a11yKey: 'a11yThemeDark' },
+const THEME_MODE_DEFS: { labelKey: string; value: ThemeMode; a11yKey: string }[] = [
+    { labelKey: 'themeAuto', value: 'auto', a11yKey: 'a11yThemeAuto' },
+    { labelKey: 'themeLight', value: 'light', a11yKey: 'a11yThemeLight' },
+    { labelKey: 'themeDark', value: 'dark', a11yKey: 'a11yThemeDark' },
 ];
 
 type LangOption = { label: string; value: AppLanguage | 'auto' };
 const LANGUAGES: LangOption[] = [
-    { label: 'Auto (device)', value: 'auto' },
+    { label: '', value: 'auto' }, // label resolved via t('languageAutoDevice') in getLangLabel
     { label: 'English', value: 'en' },
     { label: 'العربية', value: 'ar' },
     { label: 'Afrikaans', value: 'af' },
@@ -107,8 +107,9 @@ const LANGUAGES: LangOption[] = [
     { label: '中文', value: 'zh' },
 ];
 
-function getLangLabel(value: AppLanguage | 'auto'): string {
-    return LANGUAGES.find(l => l.value === value)?.label ?? 'Auto (device)';
+function getLangLabel(value: AppLanguage | 'auto', t: (k: string) => string): string {
+    if (value === 'auto') {return t('languageAutoDevice');}
+    return LANGUAGES.find(l => l.value === value)?.label ?? t('languageAutoDevice');
 }
 
 function formatTime(hour: number, minute: number, t: (key: string) => string): string {
@@ -243,7 +244,7 @@ export default function SettingsScreen() {
                                 <TouchableOpacity
                                     key={s.key}
                                     onPress={() => setThemeColor(s.key)}
-                                    accessibilityLabel={s.name}
+                                    accessibilityLabel={t(s.labelKey)}
                                     accessibilityState={{selected: isSelected}}
                                     style={[
                                         styles.swatch,
@@ -264,7 +265,7 @@ export default function SettingsScreen() {
                 <M3Card variant="filled" style={styles.sectionCard}>
                     <M3SegmentedButton
                         options={THEME_MODE_DEFS.map(opt => ({
-                            label: opt.label,
+                            label: t(opt.labelKey),
                             value: opt.value,
                             a11y: t(opt.a11yKey),
                         }))}
@@ -307,7 +308,7 @@ export default function SettingsScreen() {
                         </View>
                         <View style={styles.settingsRowRight}>
                             <Text style={[type.labelLarge, { color: colors.primary }]}>
-                                {getLangLabel(language)}
+                                {getLangLabel(language, t)}
                             </Text>
                             <Icons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
                         </View>

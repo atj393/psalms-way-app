@@ -49,6 +49,7 @@ export default function HomeScreen() {
   const [streak, setStreak] = useState(0);
   const [isFav, setIsFav] = useState(false);
   const [moreSheetVisible, setMoreSheetVisible] = useState(false);
+  const [sourcePrayerId, setSourcePrayerId] = useState<string | null>(null);
   const scrollRef = useRef<ScrollView>(null);
   const {t} = useTranslation();
 
@@ -121,13 +122,14 @@ export default function HomeScreen() {
   useEffect(() => {
     const sub = DeviceEventEmitter.addListener(
       NOTIF_PRESS_EVENT,
-      ({chapter: notifChapter, verse: notifVerse}: NotifPressPayload) => {
+      ({chapter: notifChapter, verse: notifVerse, source, prayerId}: NotifPressPayload) => {
         console.log(
-          `[Home] Notification press received → chapter=${notifChapter} verse=${notifVerse}`,
+          `[Home] Notification press received → chapter=${notifChapter} verse=${notifVerse} source=${source ?? 'notification'}`,
         );
         setChapter(notifChapter);
         setHighlightVerse(notifVerse);
         setSubScreen('verse');
+        setSourcePrayerId(source === 'prayer' && prayerId ? prayerId : null);
         scrollRef.current?.scrollTo({y: 0, animated: false});
       },
     );
@@ -156,15 +158,18 @@ export default function HomeScreen() {
     setChapter(c);
     setHighlightVerse(0);
     setSubScreen('verse');
+    setSourcePrayerId(null);
     scrollTop();
     handleChapterRead(c);
   }, [handleChapterRead]);
 
   const onNewChapter = useCallback(() => {
+    setSourcePrayerId(null);
     navigateToChapter(randomChapter(), 'chapter');
   }, [navigateToChapter]);
 
   const onPrevChapter = useCallback(() => {
+    setSourcePrayerId(null);
     setChapter(prev => {
       const next = prev <= 1 ? 150 : prev - 1;
       handleChapterRead(next);
@@ -176,6 +181,7 @@ export default function HomeScreen() {
   }, [handleChapterRead]);
 
   const onNextChapter = useCallback(() => {
+    setSourcePrayerId(null);
     setChapter(prev => {
       const next = prev >= 150 ? 1 : prev + 1;
       handleChapterRead(next);
@@ -277,6 +283,10 @@ export default function HomeScreen() {
     navigation.navigate('Challenges');
   }, [navigation]);
 
+  const openPrayers = useCallback(() => {
+    navigation.navigate('Prayers');
+  }, [navigation]);
+
   const openLibrary = useCallback(() => {
     navigation.navigate('Library', {
       onSelect: (selected: number) => {
@@ -336,6 +346,14 @@ export default function HomeScreen() {
             onCompare={openCompare}
             onNoteEdit={openNoteEdit}
             onOpenChapter={onOpenChapter}
+            onBackToPrayer={
+              sourcePrayerId
+                ? () => {
+                    setSourcePrayerId(null);
+                    navigation.navigate('PrayerDetail', {prayerId: sourcePrayerId});
+                  }
+                : undefined
+            }
           />
         </ScrollView>
       )}
@@ -356,6 +374,7 @@ export default function HomeScreen() {
         onStatsPress={openStats}
         onBadgesPress={openBadges}
         onChallengesPress={openChallenges}
+        onPrayersPress={openPrayers}
       />
 
       {achievement && (

@@ -15,6 +15,7 @@ type Props = {
   onCompare: (verse: number) => void;
   onNoteEdit: (verse: number) => void;
   onOpenChapter: () => void;
+  onBackToPrayer?: () => void; // set when the user arrived from a prayer psalm reference
 };
 
 export default function ChapterVerseScreen({
@@ -24,6 +25,7 @@ export default function ChapterVerseScreen({
   onCompare,
   onNoteEdit,
   onOpenChapter,
+  onBackToPrayer,
 }: Props) {
   const {t} = useTranslation();
   const {colors, type, fontSize} = useTheme();
@@ -116,6 +118,13 @@ export default function ChapterVerseScreen({
             leading={<Icons name="library" size={16} color={colors.onSurfaceVariant} />}
             onPress={onOpenChapter}
           />
+          {onBackToPrayer && (
+            <M3Chip
+              label={t('backToPrayer', {defaultValue: 'Back to Prayer'})}
+              leading={<Icons name="prayer" size={16} color={colors.onSurfaceVariant} />}
+              onPress={onBackToPrayer}
+            />
+          )}
         </View>
       </M3Card>
     </View>
