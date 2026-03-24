@@ -18,6 +18,8 @@ import StatsScreen from './screens/StatsScreen';
 import BadgesScreen from './screens/BadgesScreen';
 import ChallengesScreen from './screens/ChallengesScreen';
 import ChallengeDetailScreen from './screens/ChallengeDetailScreen';
+import PrayersScreen from './screens/PrayersScreen';
+import PrayerDetailScreen from './screens/PrayerDetailScreen';
 import notifee, {EventType} from '@notifee/react-native';
 import type {ChallengeId} from './services/challengesService';
 import {NOTIF_PRESS_EVENT, type NotifPressPayload} from './notificationEvents';
@@ -36,6 +38,8 @@ export type RootStackParamList = {
   Badges: undefined;
   Challenges: undefined;
   ChallengeDetail: {challengeId: ChallengeId};
+  Prayers: undefined;
+  PrayerDetail: {prayerId: string};
 };
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
@@ -214,6 +218,16 @@ function AppContent() {
           name="ChallengeDetail"
           component={ChallengeDetailScreen}
           options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="Prayers"
+          component={PrayersScreen}
+          options={{presentation: 'modal'}}
+        />
+        <Stack.Screen
+          name="PrayerDetail"
+          component={PrayerDetailScreen}
+          options={{presentation: 'card'}}
         />
       </Stack.Navigator>
     </NavigationContainer>

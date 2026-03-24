@@ -44,7 +44,7 @@ export default function Header({
       {/* Row 1: App title + 3 utility icons */}
       <View style={styles.row}>
         <Text style={[type.titleSmall, {color: colors.onSurfaceVariant}]}>
-          Psalms Way
+          {t('appName')}
         </Text>
         <View style={styles.iconGroup}>
           <M3IconButton onPress={onSearchPress} accessibilityLabel={t('a11ySearchPsalms')}>

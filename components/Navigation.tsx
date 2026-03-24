@@ -48,7 +48,7 @@ export default function Navigation({
           />
           <M3IconButton
             onPress={onMorePress}
-            accessibilityLabel="More"
+            accessibilityLabel={t('a11yMore')}
             style={styles.moreBtn}>
             <Icons name="expand-less" size={26} color={colors.primary} />
           </M3IconButton>

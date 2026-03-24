@@ -30,6 +30,7 @@ type Props = {
   onStatsPress: () => void;
   onBadgesPress: () => void;
   onChallengesPress: () => void;
+  onPrayersPress: () => void;
 };
 
 const SHEET_HEIGHT = 220;
@@ -41,6 +42,7 @@ export default function MoreSheet({
   onStatsPress,
   onBadgesPress,
   onChallengesPress,
+  onPrayersPress,
 }: Props) {
   const {t} = useTranslation();
   const {colors, type} = useTheme();
@@ -109,6 +111,12 @@ export default function MoreSheet({
       labelKey: 'challenges',
       onPress: () => handleItemPress(onChallengesPress),
       color: colors.secondary,
+    },
+    {
+      icon: 'prayer',
+      labelKey: 'prayers',
+      onPress: () => handleItemPress(onPrayersPress),
+      color: colors.tertiary ?? colors.primary,
     },
   ];
 
