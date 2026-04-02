@@ -3,7 +3,7 @@ import {FlatList, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {spacing, useTheme} from '../theme';
+import {getShadowStyle, spacing, useTheme} from '../theme';
 import type {RootStackParamList} from '../App';
 import Icons from '../components/Icons';
 import {getBookmarks, type Bookmark} from '../services/bookmarksService';
@@ -175,7 +175,7 @@ export default function LibraryScreen() {
       <View
         style={[
           styles.appBar,
-          {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
+          {backgroundColor: colors.surface, ...getShadowStyle(isDark ? 1 : 2)},
         ]}>
         <Text
           style={[

@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
 import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
-import { shape, spacing, useTheme, type ThemeMode } from '../theme';
+import { getShadowStyle, shape, spacing, useTheme, type ThemeMode } from '../theme';
 import { useAppSettings, type AppLanguage, type ThemeColor } from '../context/AppSettingsContext';
 import { getAllVersions, type PsalmMetadata } from '../services/psalmsService';
 
@@ -204,7 +204,7 @@ export default function SettingsScreen() {
             <View
                 style={[
                     styles.appBar,
-                    { backgroundColor: colors.surface, elevation: isDark ? 1 : 2 },
+                    { backgroundColor: colors.surface, ...getShadowStyle(isDark ? 1 : 2) },
                 ]}>
                 <View style={styles.titleGroup}>
                     <Text style={[type.titleLarge, { color: colors.onSurface }]}>{t('settings')}</Text>

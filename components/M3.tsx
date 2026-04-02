@@ -14,7 +14,7 @@ import {
   type TextStyle,
   type ViewStyle,
 } from 'react-native';
-import {useTheme, ripple, shape, spacing} from '../theme';
+import {getShadowStyle, useTheme, ripple, shape, spacing} from '../theme';
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -281,7 +281,7 @@ export function M3Card({variant = 'elevated', children, style, onPress}: CardPro
     <View
       style={[
         card.base,
-        {backgroundColor: bg, elevation: elev},
+        {backgroundColor: bg, ...getShadowStyle(elev)},
         border,
         style,
       ]}>
@@ -293,7 +293,7 @@ export function M3Card({variant = 'elevated', children, style, onPress}: CardPro
     return (
       <M3Pressable
         onPress={onPress}
-        style={[card.base, {backgroundColor: bg, elevation: elev}, border, style]}>
+        style={[card.base, {backgroundColor: bg, ...getShadowStyle(elev)}, border, style]}>
         {children}
       </M3Pressable>
     );
@@ -520,7 +520,7 @@ export function M3TopAppBar({title, subtitle, leading, trailing, style}: TopAppB
         tab_bar.container,
         {
           backgroundColor: colors.surface,
-          elevation: isDark ? 1 : 2,
+          ...getShadowStyle(isDark ? 1 : 2),
         },
         style,
       ]}>

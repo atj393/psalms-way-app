@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
-import {useTheme, shape, spacing} from '../theme';
+import {getShadowStyle, useTheme, shape, spacing} from '../theme';
 import {M3FilledButton, M3TonalButton} from './M3';
 
 export type AchievementType = 'badge' | 'challenge' | 'info';
@@ -113,7 +113,7 @@ export default function AchievementCard({
               borderRadius: shape.extraLarge,
               opacity: opacityAnim,
               transform: [{scale: scaleAnim}],
-              elevation: 8,
+              ...getShadowStyle(8),
             },
           ]}>
           {/* Headline */}

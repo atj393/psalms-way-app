@@ -10,7 +10,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {shape, spacing, useTheme} from '../theme';
+import {getShadowStyle, shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import {getChapter} from '../services/psalmsService';
 import {useAppSettings} from '../context/AppSettingsContext';
@@ -69,7 +69,7 @@ export default function SearchScreen() {
       edges={['top', 'bottom']}>
 
       {/* Search bar row */}
-      <View style={[styles.searchRow, {backgroundColor: colors.surface, elevation: 2}]}>
+      <View style={[styles.searchRow, {backgroundColor: colors.surface, ...getShadowStyle(2)}]}>
         <View
           style={[
             styles.searchBar,
