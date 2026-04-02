@@ -11,7 +11,7 @@ import {
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {shape, spacing, useTheme} from '../theme';
+import {getShadowStyle, shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import {getNoteForVerse, saveNote, deleteNote} from '../services/notesService';
 import {getChapter} from '../services/psalmsService';
@@ -78,7 +78,7 @@ export default function NoteEditScreen() {
       <View
         style={[
           styles.appBar,
-          {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
+          {backgroundColor: colors.surface, ...getShadowStyle(isDark ? 1 : 2)},
         ]}>
         <View style={styles.titleGroup}>
           <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('note')}</Text>

@@ -1,4 +1,5 @@
-import {useColorScheme} from 'react-native';
+import {Platform, useColorScheme} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import {useAppSettings} from '../context/AppSettingsContext';
 import type {ThemeColor} from '../context/AppSettingsContext';
 
@@ -416,6 +417,25 @@ export const elevation = {
   level4: 8,
   level5: 12,
 };
+
+/**
+ * Returns platform-appropriate shadow/elevation styles.
+ * Android uses `elevation`; iOS uses `shadowColor/Offset/Opacity/Radius`.
+ */
+export function getShadowStyle(level: number): ViewStyle {
+  if (Platform.OS === 'android') {
+    return {elevation: level};
+  }
+  if (level === 0) {
+    return {};
+  }
+  return {
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: Math.min(level * 0.5, 6)},
+    shadowOpacity: Math.min(0.08 + level * 0.03, 0.3),
+    shadowRadius: Math.min(level * 0.8, 10),
+  };
+}
 
 // ─── Spacing Grid (4dp base) ─────────────────────────────────────────────────
 

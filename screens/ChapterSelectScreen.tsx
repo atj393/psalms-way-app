@@ -3,7 +3,7 @@ import {Dimensions, FlatList, StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
-import {shape, spacing, useTheme} from '../theme';
+import {getShadowStyle, shape, spacing, useTheme} from '../theme';
 import Icons from '../components/Icons';
 import type {RootStackParamList} from '../App';
 import {M3IconButton, M3Pressable} from '../components/M3';
@@ -41,7 +41,7 @@ export default function ChapterSelectScreen() {
       <View
         style={[
           styles.appBar,
-          {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
+          {backgroundColor: colors.surface, ...getShadowStyle(isDark ? 1 : 2)},
         ]}>
         <View style={styles.titleGroup}>
           <Text style={[type.titleLarge, {color: colors.onSurface}]}>{t('selectPsalm')}</Text>

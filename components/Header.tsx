@@ -2,7 +2,7 @@ import React from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import Icons from './Icons';
-import {spacing, useTheme, type SubScreen} from '../theme';
+import {getShadowStyle, spacing, useTheme, type SubScreen} from '../theme';
 import {M3IconButton} from './M3';
 
 type Props = {
@@ -38,7 +38,7 @@ export default function Header({
     <View
       style={[
         styles.container,
-        {backgroundColor: colors.surface, elevation: isDark ? 1 : 2},
+        {backgroundColor: colors.surface, ...getShadowStyle(isDark ? 1 : 2)},
       ]}>
 
       {/* Row 1: App title + 3 utility icons */}

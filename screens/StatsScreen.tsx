@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
-import { spacing, useTheme } from '../theme';
+import { getShadowStyle, spacing, useTheme } from '../theme';
 import { M3Card, M3Divider, M3IconButton } from '../components/M3';
 import Icons from '../components/Icons';
 import { getStreak, getLongestStreak } from '../services/streakService';
@@ -155,7 +155,7 @@ export default function StatsScreen() {
             <View
                 style={[
                     styles.appBar,
-                    { backgroundColor: colors.surface, elevation: isDark ? 1 : 2 },
+                    { backgroundColor: colors.surface, ...getShadowStyle(isDark ? 1 : 2) },
                 ]}>
                 <View style={styles.appBarTitle}>
                     <Text style={[type.titleLarge, { color: colors.onSurface }]}>

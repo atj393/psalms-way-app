@@ -14,7 +14,7 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect, useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {useTranslation} from 'react-i18next';
-import {shape, spacing, useTheme} from '../theme';
+import {getShadowStyle, shape, spacing, useTheme} from '../theme';
 import {M3Card, M3Divider, M3FilledButton, M3IconButton, M3TonalButton} from '../components/M3';
 import Icons from '../components/Icons';
 import {
@@ -100,7 +100,7 @@ function DayCompleteCard({
         <Animated.View
           style={[
             styles.dayCard,
-            {backgroundColor: colors.surface, borderRadius: shape.extraLarge, opacity: opacityAnim, transform: [{scale: scaleAnim}], elevation: 8},
+            {backgroundColor: colors.surface, borderRadius: shape.extraLarge, opacity: opacityAnim, transform: [{scale: scaleAnim}], ...getShadowStyle(8)},
           ]}>
           <Text style={styles.dayCardEmoji}>{allDone ? '👑' : '🎉'}</Text>
           <Text style={[type.headlineSmall, {color: colors.onSurface, textAlign: 'center', marginTop: spacing.md}]}>
