@@ -1,0 +1,99 @@
+================================================================================
+PROJECT ANALYSIS & COMMIT HISTORY DOCUMENTATION
+================================================================================
+Project: Psalms Way App
+Platform: Android Native (React Native 0.84.1)
+Language: TypeScript
+Architecture: React Navigation Native Stack, AsyncStorage (State persistence)
+
+================================================================================
+I. EXECUTIVE SUMMARY OF THE PROJECT
+================================================================================
+Psalms Way is a React Native Android application designed as a spiritual and 
+devotional utility. Since the project was rebuilt from scratch in mid-March, 
+the application has evolved from a basic Psalms reader into a fully-fledged, 
+gamified, and highly localized spiritual companion app. The core architecture 
+is deliberately lightweight (no heavy state managers like Redux), leveraging 
+`useState` and React Context for theming, font management, and localization. 
+Data is primarily stored locally (JSON), guaranteeing offline functionality. 
+
+A primary focus of this evolution was a complete UI redesign aimed at keeping 
+and enhancing the central navigation elements (the main buttons and MoreSheet) 
+to seamlessly house all the new features we added to the application.
+
+================================================================================
+II. DETAILED BREAKDOWN OF NEW CHANGES (By Category)
+================================================================================
+The following is an analysis documenting the timeline and categories of 
+all changes across the recent commit history, transforming the app from its 
+initial rebuild into its current advanced state. We added a lot of new features 
+to this application spanning across multiple new sections:
+
+1. LIBRARY, STATUS & RECORD KEEPING
+--------------------------------------------------
+- Completely New Library Section: A rich hub for personalizing study via 
+  Bookmarks, Favorites, History tracking, and custom Notes.
+- Reading Status Dashboard: Added deep metrics allowing users to track their 
+  engagement. Metrics include daily streaks, detailed reading history, reading 
+  totals (like how many unique chapters read and total reading sessions), and 
+  analytics on the most read psalms.
+
+2. PRAYERS (Core Feature Expansion)
+--------------------------------------------------
+- Prayers: One of the newest and most important features added. The library 
+  has massively expanded past Psalms to host targeted devotions.
+- Categories include: Morning prayers, noon prayers, evening prayers, and night 
+  prayers.
+- Intentions: Travel prayers, exam prayers, work prayers, interview prayers, 
+  for children, for marriage, for husband, for wife, healing, and many other 
+  prayers also included.
+
+3. GAMIFICATION, CHALLENGES & ACHIEVEMENTS
+--------------------------------------------------
+- Badges: Reward systems unlocking at key milestones such as first read, 
+  3-day streak, 7-day streak, 30-day streak, and everything in between.
+- Challenges: There are challenges users can select and start. Users can dive 
+  into a 7-day challenge, 21-day challenge, 40-day challenge, and so on.
+
+4. SEARCH CAPABILITIES
+--------------------------------------------------
+- Full-Text Deep Search: Introduced a search option where users can search for a 
+  certain word (like "glory", "thank", or something similar). It will search the 
+  complete Psalm database and will highlight the exact Psalm where it is found.
+
+5. SETTINGS, CUSTOMIZATIONS & UI
+--------------------------------------------------
+- Accessibility & Text: Integrated settings where users can adjust the text 
+  size to small, to medium, to large.
+- Theming Engine: Included 5 accent color options where users can select 
+  their branding. Supported by complete system themes like light and dark theme.
+- Navigation Overhaul: Kept and enhanced the core navigation buttons (like the 
+  Navigation component and More button) to provide immediate access to the 
+  Library, Stats, Badges, and Challenges without UI clutter.
+- Splash & Transitions: Refined the app launch experience with a new bespoke 
+  splash screen that supports smooth theme transitions and an updated app name.
+
+6. BIBLE VERSIONS & GLOBAL LOCALIZATION 
+--------------------------------------------------
+- Mass Localization: The app natively supports 47 total languages. 
+- Bible Versions: There are so many Bible versions now included that the exact 
+  tally amounts to 82 total versions globally supported (e.g., KJV + 8 other 
+  versions in English alone, 6 in Chinese, 5 in German, etc.). User interface 
+  updated for seamless switching between dialects.
+
+7. AUTOMATED NOTIFICATIONS
+--------------------------------------------------
+- Custom Daily Alerts: A time-picker driven notification system where the user 
+  can set their preferred time of day and receive an automated Daily Verse 
+  notification directly on their device.
+
+================================================================================
+III. CONCLUSION
+================================================================================
+Over the span of several weeks, the Psalms Way App underwent massive capability 
+expansion. It is no longer just a "Psalm reader" but a complex devotional platform 
+featuring 47 languages, 82 Bible versions, deep theming, extensive gamification 
+(streaks, badges, challenges), advanced highlighting/search, and highly 
+specialized daily prayer categories—all built on robust offline performance and 
+anchored perfectly by a redesigned and enhanced UI button layout.
+================================================================================
