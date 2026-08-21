@@ -1,97 +1,195 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+<div align="center">
 
-# Getting Started
+# Psalms Way
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+**All 150 Psalms, in 81 translations and 47 interface languages — completely offline.**
 
-## Step 1: Start Metro
+[![CI](https://github.com/atj393/psalms-way-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/atj393/psalms-way-app/actions/workflows/ci.yml)
+[![Google Play](https://img.shields.io/badge/Google_Play-Download-3DDC84?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.psalmswayapp)
+[![Platform](https://img.shields.io/badge/platform-Android_5.0%2B-3DDC84)](#requirements)
+[![React Native](https://img.shields.io/badge/React_Native-0.84-61DAFB?logo=react&logoColor=white)](https://reactnative.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
+</div>
 
-To start the Metro dev server, run the following command from the root of your React Native project:
+---
 
-```sh
-# Using npm
-npm start
+## Status
 
-# OR using Yarn
-yarn start
+- **Google Play:** [live](https://play.google.com/store/apps/details?id=com.psalmswayapp) — `com.psalmswayapp`
+- **Current release:** `2.0.0` (versionCode 9)
+- **Platform:** Android. An `ios/` project exists but is not built or shipped.
+- **Network:** none. The app makes no network requests at all.
+
+There is also a companion [Chrome extension](https://github.com/atj393/psalms-way-browser-extension)
+for reading Psalms in the browser.
+
+## Why this exists
+
+Most scripture apps assume a connection, an account, and a single translation.
+This one assumes none of those. It was built for reading in places where there
+is no signal and no interest in signing in to anything — and for people who read
+in a language that scripture apps usually treat as an afterthought.
+
+That shaped every technical decision below: everything is bundled, nothing is
+fetched, and the translation list is long rather than convenient.
+
+## What it does
+
+**Reading**
+- All 150 Psalms in **81 translations**, selectable at any time.
+- **Compare** two translations of the same Psalm side by side.
+- **Search** across the text.
+- Random verse, full chapter, and direct chapter navigation.
+- **Prayers** collection alongside the Psalms.
+
+**Making it yours**
+- Bookmarks, favourites, highlights, and free-form notes per verse.
+- Reading history.
+- Font size and light/dark/auto theme, persisted.
+- **47 interface languages**, auto-detected from the device locale.
+
+**Staying with it**
+- Daily reading reminders (local notifications only).
+- Reading streaks, challenges, badges, and stats.
+
+## Engineering notes
+
+The interesting constraints here came from "offline" and "81 translations"
+colliding.
+
+**Metro cannot resolve a dynamic `require`.** React Native's bundler needs every
+`require()` path to be statically analysable at build time, so the obvious
+implementation — building a path from the selected translation's id — silently
+fails to bundle anything. `services/psalmsModules.ts` is therefore an explicit
+static map of all 81 translations. It looks repetitive on purpose: it is the
+only shape Metro can actually see, and generating it is a build step, not a
+runtime one.
+
+**~26 MB of scripture ships inside the APK.** That is the price of working with
+no connection, and it is a deliberate trade: a smaller download that needs the
+network would defeat the point. Translation data is kept out of the JS-heavy
+path and behind the module map so only what is opened is resolved.
+
+**Locale detection has to degrade gracefully.** `react-native-localize` reports
+the device's preferred tags, and `findBestLanguageTag` picks the closest of the
+47 shipped locales. Anything unmatched falls back to English rather than
+rendering raw i18n keys.
+
+**All persistence is local and schema-free.** Bookmarks, notes, highlights,
+streaks, and settings live in AsyncStorage behind small single-purpose services
+(`bookmarksService`, `notesService`, `streakService`, …) rather than one store.
+There is no migration system, so each service tolerates missing or partial data
+instead of assuming its own shape.
+
+**Notifications are local-only.** Reminders are scheduled with Notifee on the
+device. There is no push infrastructure, no token, and no server — consistent
+with the app never making a network request.
+
+## Architecture
+
+```mermaid
+flowchart TD
+    APP["App.tsx<br/>NavigationContainer + native stack"]
+    CTX["AppSettingsContext<br/>theme · font size · language"]
+
+    subgraph SCREENS["Screens"]
+        READ["Home · Chapter · Verse<br/>Compare · Search"]
+        LIB["Library · Notes · Prayers"]
+        GAME["Challenges · Badges · Stats"]
+        SET["Settings · Onboarding"]
+    end
+
+    subgraph SVC["Services"]
+        PS["psalmsService<br/>+ psalmsModules (static map)"]
+        USER["bookmarks · favorites · highlights<br/>notes · history · streak · badges"]
+        NOTIF["notificationService<br/>Notifee, local only"]
+    end
+
+    DATA[("Bundled JSON<br/>81 translations · ~26 MB")]
+    STORE[("AsyncStorage")]
+    I18N["i18next + react-native-localize<br/>47 locales"]
+
+    APP --> CTX --> SCREENS
+    SCREENS --> PS --> DATA
+    SCREENS --> USER --> STORE
+    CTX --> STORE
+    SCREENS --> NOTIF
+    APP --> I18N
 ```
 
-## Step 2: Build and run your app
+No network layer appears in this diagram because the app does not have one.
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```
+App.tsx              NavigationContainer + native stack
+context/             global settings (theme, font size, language)
+screens/             16 screens
+components/          Header, Navigation, Icons, M3 primitives, sheets
+services/            psalms data access + per-feature persistence
+i18n/locales/        47 UI translations
+psalms_extracted/    81 bundled Psalm translations
+android/             Gradle project, applicationId com.psalmswayapp
 ```
 
-### iOS
+## Requirements
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+- Android 5.0+ (`minSdkVersion 21`)
+- Node 20+ and a configured Android SDK for development
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+## Local development
 
-```sh
-bundle install
+```bash
+npm install
+npm start              # Metro bundler
+npm run android        # build and install on a connected device/emulator
+npm run android:pick   # choose a device interactively
+npm test               # jest
+npm run lint           # eslint
 ```
 
-Then, and every time you update your native dependencies, run:
+On a physical device, forward the Metro port first:
 
-```sh
-bundle exec pod install
+```bash
+adb reverse tcp:8081 tcp:8081
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+## Testing
 
-```sh
-# Using npm
-npm run ios
+`npm test` runs a smoke test that renders the full application — navigation,
+i18n initialisation, the settings context, and the translation module map.
 
-# OR using Yarn
-yarn ios
-```
+That is a deliberately small suite, but it is not a trivial one: because every
+translation is wired through a static `require` map and i18n initialises at
+import time, this test fails loudly on the failure mode this app is most prone
+to — a bundling or import-time error that would crash on launch rather than
+show up as a wrong value.
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+Not covered: per-screen interaction, persistence round-trips, and notification
+scheduling. Those are checked by hand on a device.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+CI runs the test suite on every push. `npm run lint` runs alongside it but does
+not gate the build yet — there are six pre-existing eslint errors (unused
+variables and one `exhaustive-deps`) that need clearing first.
 
-## Step 3: Modify your app
+## Known limitations
 
-Now that you have successfully run the app, let's make changes!
+- Android only in practice; the `ios/` project is unbuilt and untested.
+- The APK is large by design (~26 MB of bundled scripture).
+- No AsyncStorage migration system — services tolerate partial data instead.
+- Reading data lives only on the device; there is no sync or backup.
+- Notification delivery is subject to Android Doze and OEM battery management.
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+## Privacy
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+The app makes no network requests, has no analytics, no accounts, and no
+telemetry. Everything read, highlighted, or noted stays in local storage on the
+device.
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+## License
 
-## Congratulations! :tada:
+This repository does not currently carry a licence file, so default copyright
+applies: all rights reserved by the author. If you want to reuse any of it, open
+an issue and ask.
 
-You've successfully run and modified your React Native App. :partying_face:
-
-### Now what?
-
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
-
-# Troubleshooting
-
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
-
-# Learn More
-
-To learn more about React Native, take a look at the following resources:
-
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+Psalm translations bundled under `psalms_extracted/` come from public-domain and
+third-party sources and remain under their own respective terms.
