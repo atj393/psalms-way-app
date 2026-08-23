@@ -9,6 +9,7 @@
 [![Platform](https://img.shields.io/badge/platform-Android_7.0%2B-3DDC84)](#requirements)
 [![React Native](https://img.shields.io/badge/React_Native-0.84-61DAFB?logo=react&logoColor=white)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 </div>
 
@@ -188,9 +189,10 @@ device.
 
 ## License
 
-This repository does not currently carry a licence file, so default copyright
-applies: all rights reserved by the author. If you want to reuse any of it, open
-an issue and ask.
+Application source code is released under the [MIT License](LICENSE), which permits
+personal and commercial use, modification, and redistribution, provided the copyright
+and licence notice are kept.
 
-Psalm translations bundled under `psalms_extracted/` come from public-domain and
-third-party sources and remain under their own respective terms.
+Psalm translations bundled under `psalms_extracted/` are **not** covered by that
+licence. They come from public-domain and third-party sources and remain under their
+own respective terms.
