@@ -2,11 +2,11 @@
 
 # Psalms Way
 
-**All 150 Psalms, in 81 translations and 47 interface languages — completely offline.**
+**All 150 Psalms, in 81 translations and 47 interface languages, completely offline.**
 
 [![CI](https://github.com/atj393/psalms-way-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/atj393/psalms-way-app/actions/workflows/ci.yml)
 [![Google Play](https://img.shields.io/badge/Google_Play-Download-3DDC84?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.psalmswayapp)
-[![Platform](https://img.shields.io/badge/platform-Android_5.0%2B-3DDC84)](#requirements)
+[![Platform](https://img.shields.io/badge/platform-Android_7.0%2B-3DDC84)](#requirements)
 [![React Native](https://img.shields.io/badge/React_Native-0.84-61DAFB?logo=react&logoColor=white)](https://reactnative.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 
@@ -16,7 +16,7 @@
 
 ## Status
 
-- **Google Play:** [live](https://play.google.com/store/apps/details?id=com.psalmswayapp) — `com.psalmswayapp`
+- **Google Play:** [live](https://play.google.com/store/apps/details?id=com.psalmswayapp), `com.psalmswayapp`, 500+ downloads.
 - **Current release:** `2.0.0` (versionCode 9)
 - **Platform:** Android. An `ios/` project exists but is not built or shipped.
 - **Network:** none. The app makes no network requests at all.
@@ -28,7 +28,7 @@ for reading Psalms in the browser.
 
 Most scripture apps assume a connection, an account, and a single translation.
 This one assumes none of those. It was built for reading in places where there
-is no signal and no interest in signing in to anything — and for people who read
+is no signal and no interest in signing in to anything, and for people who read
 in a language that scripture apps usually treat as an afterthought.
 
 That shaped every technical decision below: everything is bundled, nothing is
@@ -60,7 +60,7 @@ colliding.
 
 **Metro cannot resolve a dynamic `require`.** React Native's bundler needs every
 `require()` path to be statically analysable at build time, so the obvious
-implementation — building a path from the selected translation's id — silently
+implementation, building a path from the selected translation's id, silently
 fails to bundle anything. `services/psalmsModules.ts` is therefore an explicit
 static map of all 81 translations. It looks repetitive on purpose: it is the
 only shape Metro can actually see, and generating it is a build step, not a
@@ -83,7 +83,7 @@ There is no migration system, so each service tolerates missing or partial data
 instead of assuming its own shape.
 
 **Notifications are local-only.** Reminders are scheduled with Notifee on the
-device. There is no push infrastructure, no token, and no server — consistent
+device. There is no push infrastructure, no token, and no server, which is consistent
 with the app never making a network request.
 
 ## Architecture
@@ -133,8 +133,8 @@ android/             Gradle project, applicationId com.psalmswayapp
 
 ## Requirements
 
-- Android 5.0+ (`minSdkVersion 21`)
-- Node 20+ and a configured Android SDK for development
+- Android 7.0+ (`minSdkVersion 24`, set in `android/build.gradle`)
+- Node 22.11+ (`package.json` engines) and a configured Android SDK for development
 
 ## Local development
 
@@ -155,28 +155,29 @@ adb reverse tcp:8081 tcp:8081
 
 ## Testing
 
-`npm test` runs a smoke test that renders the full application — navigation,
+`npm test` runs a smoke test that renders the full application: navigation,
 i18n initialisation, the settings context, and the translation module map.
 
 That is a deliberately small suite, but it is not a trivial one: because every
 translation is wired through a static `require` map and i18n initialises at
 import time, this test fails loudly on the failure mode this app is most prone
-to — a bundling or import-time error that would crash on launch rather than
+to, a bundling or import-time error that would crash on launch rather than
 show up as a wrong value.
 
 Not covered: per-screen interaction, persistence round-trips, and notification
 scheduling. Those are checked by hand on a device.
 
 CI runs the test suite on every push. `npm run lint` runs alongside it but does
-not gate the build yet — there are six pre-existing eslint errors (unused
-variables and one `exhaustive-deps`) that need clearing first.
+not gate the build yet: the workflow sets `continue-on-error` because of
+pre-existing eslint errors (unused variables and one `exhaustive-deps`) that
+need clearing first.
 
 ## Known limitations
 
-- Android only in practice; the `ios/` project is unbuilt and untested.
+- Android only in practice. The `ios/` project is unbuilt and untested.
 - The APK is large by design (~26 MB of bundled scripture).
-- No AsyncStorage migration system — services tolerate partial data instead.
-- Reading data lives only on the device; there is no sync or backup.
+- No AsyncStorage migration system, so services tolerate partial data instead.
+- Reading data lives only on the device, with no sync or backup.
 - Notification delivery is subject to Android Doze and OEM battery management.
 
 ## Privacy
