@@ -11,6 +11,9 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+<video src="https://github.com/atj393/psalms-way-app/raw/main/docs/assets/brag.mp4" poster="https://github.com/atj393/psalms-way-app/raw/main/docs/assets/brag.jpg" controls width="720">
+</video>
+
 </div>
 
 ---
