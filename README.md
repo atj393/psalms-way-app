@@ -11,9 +11,7 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-3178C6?logo=typescript&logoColor=white)](tsconfig.json)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-[<img src="docs/assets/brag.jpg" width="720" alt="Psalms Way launch video" />](docs/assets/brag.mp4)
-
-▶ Watch the launch video
+https://github.com/user-attachments/assets/c70a88ca-aee1-4f6e-a6d4-47c84088a158
 
 </div>
 
