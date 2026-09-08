@@ -8,7 +8,14 @@ Read it fully before making any changes.
 ## Project Overview
 
 **Psalms Way** is an Android-only spiritual/devotional React Native app.
-It displays all 150 Psalms from the KJV Bible, supports random verse and full chapter browsing, and persists user preferences (theme, font size) across sessions.
+It displays all 150 Psalms in 82 translations across 47 interface languages, with
+bookmarks, favourites, highlights, notes, reading history, search, translation
+comparison, prayers, reading challenges, streaks, badges, stats, daily reminders,
+and optional Google Drive backup.
+
+> This file drifted badly from the code (it described a 5-screen app with no
+> i18n, notifications, bookmarks or challenges). Updated 2026-09-08. If you find
+> it wrong again, fix it in the same change.
 
 - **Package ID:** `com.psalmswayapp`
 - **Platform:** Android only (no iOS support)
@@ -40,35 +47,39 @@ It displays all 150 Psalms from the KJV Bible, supports random verse and full ch
 ## Directory Structure
 
 ```
-psalm-way-new/
-├── App.tsx                        # Root — NavigationContainer + Stack.Navigator
-├── index.js                       # AppRegistry entry point
-├── psalms-en.json                 # 150 chapters of KJV Psalms (string[][])
-│
-├── context/
-│   └── AppSettingsContext.tsx     # Global theme + font size state (AsyncStorage)
-│
-├── theme/
-│   └── index.ts                   # Colors, useTheme() hook, createVerseStyles()
-│
-├── services/
-│   └── psalmsService.ts           # getChapter(), getRandomVerse()
-│
-├── components/
-│   ├── Header.tsx                 # Top bar: app title, psalm location, settings btn
-│   ├── Navigation.tsx             # Bottom bar: New Verse, New Chapter, Prev, Next, Chapters
-│   └── Icons.tsx                  # SVG icon component (settings, close, bookmark, share)
-│
-├── screens/
-│   ├── HomeScreen.tsx             # Main screen — holds all state and navigation logic
-│   ├── ChapterScreen.tsx          # Full psalm view (FlatList of all verses)
-│   ├── ChapterVerseScreen.tsx     # Single random verse view
-│   ├── ChapterSelectScreen.tsx    # 5-column grid modal to pick psalm 1–150
-│   └── SettingsScreen.tsx         # Font size and theme preference modal
-│
-└── android/
-    ├── app/build.gradle           # applicationId, versionCode, signingConfigs
-    └── gradle.properties          # newArchEnabled=true, hermesEnabled=true
+App.tsx                      NavigationContainer + native stack (14 routes)
+index.js                     AppRegistry entry; Notifee background handler
+notificationEvents.ts        Shared event name/payload for notification taps
+psalms-en.json               Bundled "modern" English psalms (string[][])
+psalms_extracted/            81 further translation files (~26 MB)
+
+context/
+  AppSettingsContext.tsx     theme, font size, language, translation, reminders
+
+theme/index.ts               M3 colour roles, typography, spacing, useTheme()
+
+services/
+  psalmsService.ts           getChapter / getVerse / getRandomVerse
+  psalmsModules.ts           STATIC require map — Metro cannot do dynamic paths
+  dateUtils.ts               local-calendar-day helpers (never use UTC)
+  storage.ts                 validated reads + per-key write serialisation
+  dailyVerseService.ts       deterministic verse-of-the-day selection
+  notificationService.ts     rolling one-shot reminder window (Notifee)
+  bookmarks/favorites/highlights/notes/history/streak/badges/challenges
+  prayersService.ts          bundled prayers
+  autoSetupService.ts        first-launch language + translation detection
+  backup/
+    schema.ts                versioned envelope + validation
+    snapshotService.ts       collect / restore with rollback
+    driveClient.ts           Drive v3 appDataFolder over fetch
+    googleAuth.ts            OAuth seam — no implementation registered
+    cloudBackupService.ts    orchestration + typed errors
+
+screens/                     16 screens
+components/                  Header, Navigation, Icons, M3 primitives, sheets
+i18n/locales/                47 interface languages
+__tests__/                   10 suites, 416 tests
+docs/                        audit, overnight result, Drive setup
 ```
 
 ---
@@ -202,15 +213,15 @@ getRandomVerse(chapter: number): { verse: string; verseNumber: number } | null
 | Setting | Value |
 |---|---|
 | `applicationId` | `com.psalmswayapp` |
-| `minSdkVersion` | 21 (Android 5.0) |
-| `targetSdkVersion` | 34 |
-| `versionCode` | 1 |
-| `versionName` | `1.0` |
+| `minSdkVersion` | 24 (Android 7.0) |
+| `targetSdkVersion` | 36 |
+| `versionCode` | 9 |
+| `versionName` | `2.0.0` |
 | `newArchEnabled` | `true` |
 | `hermesEnabled` | `true` |
 | `edgeToEdgeEnabled` | `false` |
 | Signing (debug) | `debug.keystore` (standard) |
-| Signing (release) | **Uses debug keystore — must fix before Play Store** |
+| Signing (release) | External properties or env vars; keystore never committed |
 
 ---
 
@@ -248,22 +259,70 @@ npm run android:pick     # interactive device selector
 
 ---
 
-## What's Not Yet Implemented (add later)
+## Conventions worth knowing
 
-- **Bookmarks** — save/remove verses per chapter, persist to AsyncStorage
-- **Share verse** — `Share.share()` on single verse screen
-- **Push notifications** — daily verse reminder
-- **Splash screen** — `react-native-splash-screen`
-- **Release keystore** — proper signing for Play Store upload
+**Dates are local, never UTC.** Use `services/dateUtils.ts`. Writing
+`new Date().toISOString().split('T')[0]` gives the *UTC* day and shifts the
+streak and the once-per-day challenge gate by up to a day depending on the
+user's timezone. That bug has been fixed once already.
+
+**Personal data goes through `services/storage.ts`.** `readJson` validates
+untrusted stored JSON; `withKeyLock` serialises read-modify-write so concurrent
+taps cannot lose writes. Do not add a service that calls AsyncStorage directly
+for user data.
+
+**Reminders are one-shot triggers, never repeating.** Android replays a
+repeating trigger with its original payload, so `RepeatFrequency.DAILY` can only
+ever deliver one frozen verse. `syncDailyNotifications` maintains a rolling
+14-day window instead, and content is a pure function of (date, translation) so
+re-syncing is idempotent.
+
+**New UI strings go in `i18n/locales/en.json`.** Other languages fall back to
+English until translated; add the key to `PENDING_TRANSLATION` in
+`__tests__/i18nIntegrity.test.ts`. Never translate a `{{placeholder}}`
+identifier — i18next binds values by name, and translating them broke 83
+strings across 39 languages.
+
+**Adding a translation file** means adding it to the static require map in
+`services/psalmsModules.ts`. Metro cannot resolve dynamic requires, and
+`psalmsData.test.ts` fails if a file on disk is unreferenced.
+
+---
+
+## Testing
+
+```bash
+npm test          # 416 tests across 10 suites
+npm run lint      # 0 errors, 113 style warnings
+npm run typecheck # clean
+cd android && ./gradlew assembleDebug
+```
+
+Business logic is tested directly rather than through the UI. Notifee,
+AsyncStorage and `react-native-localize` are mocked in `jest.setup.js`.
 
 ---
 
 ## Known Issues
 
-- Release build still uses `debug.keystore` — must generate a proper upload key before Play Store submission
-- `__tests__/App.test.tsx` references the old default RN template screen — update or remove before running `npm test`
+- **Upload keystore passwords are in git history.** Commit `916faad` removed
+  them from HEAD only; `git show` still prints them and the branches are
+  pushed. Rotate the key — see `docs/OVERNIGHT_AUDIT.md` A-01.
+- `SCHEDULE_EXACT_ALARM` still merges into the APK from `app.notifee:core`,
+  even though the app manifest no longer declares it and reminders do not rely
+  on exact alarms.
+- Google Drive backup needs a Cloud Console OAuth client and a sign-in library
+  before it can run; see `docs/GOOGLE_DRIVE_SETUP.md`. Unconfigured, Settings
+  shows it as unavailable and nothing else is affected.
+- Tibetan (`bo`) and Wolof (`wo`) define about half the interface strings and
+  fall back to English for the rest.
+- `lt_heritage` contains 137 of 150 psalms; `ta_oitce` contains 148. Missing
+  psalms render an explanatory empty state.
+- 113 eslint warnings remain, all `no-inline-styles` and
+  `no-unstable-nested-components`.
 
 ---
+
 
 ## Git & Repo
 

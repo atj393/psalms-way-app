@@ -145,7 +145,7 @@
   "challengeStart": "Mulai Tantangan",
   "challengeContinue": "Melanjutkan",
   "challengeCompleted": "Selesai!",
-  "challengeProgress": "{{selesai}} / {{total}} bab",
+  "challengeProgress": "{{done}} / {{total}} bab",
   "achievementUnlocked": "Prestasi Terbuka!",
   "challengeFinished": "Tantangan Selesai!",
   "awesome": "Luar biasa!",

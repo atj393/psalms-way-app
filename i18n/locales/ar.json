@@ -145,7 +145,7 @@
   "challengeStart": "ابدأ التحدي",
   "challengeContinue": "يكمل",
   "challengeCompleted": "مكتمل!",
-  "challengeProgress": "{{تم}} / {{إجمالي}} فصلاً",
+  "challengeProgress": "{{done}} / {{total}} فصلاً",
   "achievementUnlocked": "تم تحقيق الإنجاز!",
   "challengeFinished": "تم إنجاز التحدي!",
   "awesome": "مذهل!",

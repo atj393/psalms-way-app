@@ -1,9 +1,30 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+      INTERNET is required only for the optional Google Drive backup feature.
+      Reading psalms is entirely offline and never touches the network.
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!--
+      SCHEDULE_EXACT_ALARM is deliberately NOT declared here. Reminders use
+      AlarmType.SET_AND_ALLOW_WHILE_IDLE, which escapes Doze without needing a
+      restricted permission, so this app does not rely on exact alarms.
+
+      Note it still reaches the built APK: app.notifee:core declares it in its
+      own manifest and the merger pulls it in (confirmed in
+      build/outputs/logs/manifest-merger-debug-report.txt). Suppressing it
+      would need tools:node="remove", which has not been done because Notifee
+      may fall back to exact alarms internally and that cannot be verified
+      without on-device testing. Google Play will therefore still ask for a
+      justification for this permission.
+
+      RECEIVE_BOOT_COMPLETED is likewise not declared here on purpose —
+      Notifee's RebootBroadcastReceiver and WorkManager's RescheduleReceiver
+      merge it in along with the receivers that restore scheduled
+      notifications after a reboot, a time change or a timezone change.
+    -->
 
     <application
       android:name=".MainApplication"

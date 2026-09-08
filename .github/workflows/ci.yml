@@ -24,21 +24,67 @@ jobs:
       - name: Check out source
         uses: actions/checkout@v4
 
+      # package.json requires >= 22.11.0; CI previously ran 20, so it was not
+      # exercising the engine the project declares.
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
         run: npm ci
 
+      # Lint now gates. The six pre-existing eslint errors are fixed, so a
+      # failure here means a real regression rather than inherited debt.
+      # `eslint .` exits non-zero on errors only; the remaining inline-style
+      # warnings are reported without failing the build.
+      - name: Lint
+        run: npm run lint
+
+      - name: Typecheck
+        run: npm run typecheck
+
       - name: Jest
         run: npm test
 
-      # Lint is reported but not gating: the repository has pre-existing
-      # eslint errors (unused vars, one exhaustive-deps) that predate this
-      # workflow. Fix those, then drop continue-on-error to make it gate.
-      - name: Lint (non-gating)
-        run: npm run lint
-        continue-on-error: true
+  android:
+    name: Android debug build
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      # Restricted to one ABI. A four-architecture build compiles the New
+      # Architecture C++ four times over and took 35 minutes locally, which
+      # does not fit a sensible CI budget; one ABI still catches Gradle,
+      # manifest and autolinking breakage, which is what this job is for.
+      - name: Assemble debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug -PreactNativeArchitectures=arm64-v8a --no-daemon

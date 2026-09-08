@@ -18,6 +18,7 @@ import { getBookmarks } from '../services/bookmarksService';
 import { getNotes } from '../services/notesService';
 import { getHighlights } from '../services/highlightsService';
 import { getFavorites } from '../services/favoritesService';
+import { toDateKey } from '../services/dateUtils';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -110,14 +111,19 @@ export default function StatsScreen() {
     const last7Days = useMemo(() => {
         if (!data) { return []; }
         const DAY_LABELS = t('daysShort').split('_');
-        const readDates = new Set(data.history.map(h => h.date.split('T')[0]));
+        // History stores a UTC ISO timestamp. Bucket it by the reader's LOCAL
+        // day: slicing the ISO string instead would file an evening reading
+        // session under tomorrow for anyone west of UTC, so the chart would
+        // disagree with the streak the user actually sees.
+        const readDates = new Set(
+            data.history.map(h => toDateKey(new Date(h.date))),
+        );
         return Array.from({ length: 7 }, (_, i) => {
             const d = new Date();
             d.setDate(d.getDate() - (6 - i));
-            const iso = d.toISOString().split('T')[0];
-            return { label: DAY_LABELS[d.getDay()], read: readDates.has(iso) };
+            return { label: DAY_LABELS[d.getDay()], read: readDates.has(toDateKey(d)) };
         });
-    }, [data]);
+    }, [data, t]);
 
     // ─── Unique chapters ────────────────────────────────────────────────────────
     const uniqueChapters = useMemo(() => {

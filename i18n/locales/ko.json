@@ -145,7 +145,7 @@
   "challengeStart": "도전 시작",
   "challengeContinue": "계속하다",
   "challengeCompleted": "완전한!",
-  "challengeProgress": "{{완료}} / {{총}} 챕터",
+  "challengeProgress": "{{done}} / {{total}} 챕터",
   "achievementUnlocked": "업적 달성!",
   "challengeFinished": "도전 완료!",
   "awesome": "엄청난!",

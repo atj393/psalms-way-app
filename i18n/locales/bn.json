@@ -182,7 +182,7 @@
   "challengeSetTime": "আমরা আপনাকে কখন মনে করিয়ে দেব?",
   "challengeTimeDesc": "{{time}} এ দৈনিক অনুস্মারক",
   "challengeDay": "{{total}} দিনের {{day}}",
-  "challengeDayNumber": "দিন {{দিন}}",
+  "challengeDayNumber": "দিন {{day}}",
   "challengeTodaysVerse": "আজকের শ্লোক",
   "markAsRead": "পঠিত হিসেবে চিহ্নিত করুন",
   "challengeDayComplete": "দিন {{day}} সম্পন্ন! 🎉",

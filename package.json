@@ -8,7 +8,8 @@
         "android:clean-install": "adb -s emulator-5554 uninstall com.psalmswayapp && npx react-native start --reset-cache --port 8081 && npx react-native run-android --deviceId emulator-5554 --port 8081",
         "lint": "eslint .",
         "start": "react-native start",
-        "test": "jest"
+        "test": "jest",
+        "typecheck": "tsc --noEmit"
     },
     "dependencies": {
         "@notifee/react-native": "^9.1.8",

@@ -2,7 +2,7 @@
 
 # Psalms Way
 
-**All 150 Psalms, in 81 translations and 47 interface languages, completely offline.**
+**All 150 Psalms, in 82 translations and 47 interface languages, read completely offline.**
 
 [![CI](https://github.com/atj393/psalms-way-app/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/atj393/psalms-way-app/actions/workflows/ci.yml)
 [![Google Play](https://img.shields.io/badge/Google_Play-Download-3DDC84?logo=googleplay&logoColor=white)](https://play.google.com/store/apps/details?id=com.psalmswayapp)
@@ -22,7 +22,9 @@ https://github.com/user-attachments/assets/c70a88ca-aee1-4f6e-a6d4-47c84088a158
 - **Google Play:** [live](https://play.google.com/store/apps/details?id=com.psalmswayapp), `com.psalmswayapp`, 500+ downloads.
 - **Current release:** `2.0.0` (versionCode 9)
 - **Platform:** Android. An `ios/` project exists but is not built or shipped.
-- **Network:** none. The app makes no network requests at all.
+- **Network:** reading is entirely offline. The app makes network requests only
+  when the user explicitly opts into Google Drive backup — a feature that is off
+  by default and requires connecting an account.
 
 There is also a companion [Chrome extension](https://github.com/atj393/psalms-way-browser-extension)
 for reading Psalms in the browser.
@@ -40,7 +42,7 @@ fetched, and the translation list is long rather than convenient.
 ## What it does
 
 **Reading**
-- All 150 Psalms in **81 translations**, selectable at any time.
+- All 150 Psalms in **82 translations**, selectable at any time.
 - **Compare** two translations of the same Psalm side by side.
 - **Search** across the text.
 - Random verse, full chapter, and direct chapter navigation.
@@ -86,8 +88,23 @@ There is no migration system, so each service tolerates missing or partial data
 instead of assuming its own shape.
 
 **Notifications are local-only.** Reminders are scheduled with Notifee on the
-device. There is no push infrastructure, no token, and no server, which is consistent
-with the app never making a network request.
+device. There is no push infrastructure, no token, and no server.
+
+Reminders are a rolling window of one-shot triggers rather than one repeating
+trigger. Android replays a repeating notification with its original payload, so
+a single repeating trigger can only ever deliver the same verse — the app queues
+14 days ahead instead, each day with its own verse, and tops the window up
+whenever the app is opened. Which verse a given day gets is a pure function of
+(date, translation), so re-running the scheduler recomputes identical content
+for days already queued and cannot double-book a day.
+
+**Backup is optional and offline-first.** The app is fully functional with no
+account, forever. If the user connects Google Drive, only their own data —
+bookmarks, notes, highlights, history, progress and preferences — is written to
+their private `appDataFolder`, using the narrow `drive.appdata` scope. The
+bundled psalms are never uploaded, and this project operates no server: the data
+goes from the device to the user's own Drive. See
+[docs/GOOGLE_DRIVE_SETUP.md](docs/GOOGLE_DRIVE_SETUP.md).
 
 ## Architecture
 
@@ -107,9 +124,10 @@ flowchart TD
         PS["psalmsService<br/>+ psalmsModules (static map)"]
         USER["bookmarks · favorites · highlights<br/>notes · history · streak · badges"]
         NOTIF["notificationService<br/>Notifee, local only"]
+        SNAP["backup/<br/>snapshot · validate · restore"]
     end
 
-    DATA[("Bundled JSON<br/>81 translations · ~26 MB")]
+    DATA[("Bundled JSON<br/>82 translations · ~26 MB")]
     STORE[("AsyncStorage")]
     I18N["i18next + react-native-localize<br/>47 locales"]
 
@@ -119,9 +137,26 @@ flowchart TD
     CTX --> STORE
     SCREENS --> NOTIF
     APP --> I18N
+
+    USER -.-> SNAP
+    STORE -.-> SNAP
+    SNAP -. "only if the user connects an account" .-> DRIVE
+    DRIVE[("Google Drive<br/>appDataFolder · the user's own")]
+
+    style DRIVE stroke-dasharray: 5 5
 ```
 
-No network layer appears in this diagram because the app does not have one.
+The only path off the device is the dashed one, and it exists solely when the
+user has explicitly connected a Google account. Reading, search, comparison and
+reminders never leave the device.
+
+```text
+Bundled Psalms --> local reading
+                       |
+AsyncStorage <-- user data --> Backup Snapshot Layer
+                                   |
+                                   +-- optional: Google Drive appDataFolder
+```
 
 ```
 App.tsx              NavigationContainer + native stack
@@ -130,7 +165,7 @@ screens/             16 screens
 components/          Header, Navigation, Icons, M3 primitives, sheets
 services/            psalms data access + per-feature persistence
 i18n/locales/        47 UI translations
-psalms_extracted/    81 bundled Psalm translations
+psalms_extracted/    81 bundled Psalm translation files (82 with modern English)
 android/             Gradle project, applicationId com.psalmswayapp
 ```
 
@@ -185,9 +220,27 @@ need clearing first.
 
 ## Privacy
 
-The app makes no network requests, has no analytics, no accounts, and no
-telemetry. Everything read, highlighted, or noted stays in local storage on the
-device.
+No analytics, no telemetry, no advertising, and no account requirement. Psalm
+text is bundled in the APK and read offline.
+
+**Optional Google Drive backup** is the single exception to "no network", and it
+is off unless the user turns it on:
+
+- Reading Psalms never requires an account and never makes a network request.
+- Connecting Google is entirely optional; the app is fully functional without it.
+- Only user-created data is uploaded: bookmarks, favourites, highlights, notes,
+  reading history, streak, badges, challenge progress and preferences.
+- The bundled psalm translations, caches and OAuth tokens are never uploaded.
+- Data goes to the user's own private Drive `appDataFolder` under the narrow
+  `drive.appdata` scope, which cannot read anything else in their Drive.
+- **This project operates no server. The developer never receives this data.**
+  It travels from the device to the user's own Google account.
+- The user can delete it at any time from Google Drive settings, without the app.
+- Disconnecting does not affect offline reading, and does not delete the backup.
+
+Restoring replaces local data rather than merging it, and always shows what the
+backup contains and when it was made before doing so. If a restore fails part
+way, the previous local data is put back.
 
 ## License
 

@@ -145,7 +145,7 @@
   "challengeStart": "Zahájit výzvu",
   "challengeContinue": "Pokračovat",
   "challengeCompleted": "Dokončeno!",
-  "challengeProgress": "{{hone}} / {{total}} kapitol",
+  "challengeProgress": "{{done}} / {{total}} kapitol",
   "achievementUnlocked": "Úspěch odemčen!",
   "challengeFinished": "Výzva dokončena!",
   "awesome": "Děsivý!",

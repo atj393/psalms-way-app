@@ -99,6 +99,78 @@ const _extracted: Record<string, ExtractedModule> = {
   mal1910:              require('../psalms_extracted/psalms-malayalam.json'),
 };
 
+// ── Language names ────────────────────────────────────────────────────────────
+
+/**
+ * Display names for the `lang_short` codes used by the bundled translations.
+ *
+ * 47 of the 81 translation files carry `lang` as an empty string or null while
+ * still having a valid `lang_short`. The Settings picker shows the language as
+ * a subtitle and sorts the list by it, so without this more than half the
+ * translations sorted together under a blank heading with no language shown.
+ *
+ * Deriving the name from the ISO code fixes the grouping without editing the
+ * bundled data files. Where a file does supply a usable `lang` it is preferred,
+ * except that "Afrikanns" is corrected to its proper spelling.
+ */
+const LANGUAGE_NAMES: Record<string, string> = {
+  af: 'Afrikaans',
+  ar: 'Arabic',
+  bn: 'Bengali',
+  bo: 'Tibetan',
+  cs: 'Czech',
+  de: 'German',
+  en: 'English',
+  es: 'Spanish',
+  fa: 'Persian',
+  fi: 'Finnish',
+  fr: 'French',
+  gu: 'Gujarati',
+  ha: 'Hausa',
+  he: 'Hebrew',
+  hi: 'Hindi',
+  ht: 'Haitian Creole',
+  hu: 'Hungarian',
+  id: 'Indonesian',
+  it: 'Italian',
+  ja: 'Japanese',
+  kn: 'Kannada',
+  ko: 'Korean',
+  lt: 'Lithuanian',
+  lv: 'Latvian',
+  mi: 'Maori',
+  ml: 'Malayalam',
+  mr: 'Marathi',
+  my: 'Burmese',
+  ne: 'Nepali',
+  nl: 'Dutch',
+  pa: 'Punjabi',
+  pl: 'Polish',
+  pt: 'Portuguese',
+  ro: 'Romanian',
+  ru: 'Russian',
+  so: 'Somali',
+  sq: 'Albanian',
+  ta: 'Tamil',
+  te: 'Telugu',
+  th: 'Thai',
+  tl: 'Tagalog',
+  tr: 'Turkish',
+  ug: 'Uyghur',
+  ur: 'Urdu',
+  vi: 'Vietnamese',
+  wo: 'Wolof',
+  zh: 'Chinese',
+};
+
+/** Resolves the language label shown in the translation picker. */
+export function resolveLanguageName(metadata: PsalmMetadata): string {
+  const known = LANGUAGE_NAMES[metadata.lang_short];
+  if (known) return known;
+  const supplied = metadata.lang;
+  return supplied && supplied.trim().length > 0 ? supplied : 'Other';
+}
+
 // ── Public API ─────────────────────────────────────────────────────────────────
 
 /** Returns the psalms string[][] for the given module key. */
@@ -118,6 +190,11 @@ export function getAllVersions(): PsalmMetadata[] {
   const rest = Object.values(_extracted)
     .map(m => m.metadata)
     .filter(m => m != null)
-    .sort((a, b) => (a.lang ?? '').localeCompare(b.lang ?? '') || (a.name ?? '').localeCompare(b.name ?? ''));
+    // Normalise the language label so every translation is grouped and sorted
+    // under a real language rather than a blank.
+    .map(m => ({...m, lang: resolveLanguageName(m)}))
+    .sort(
+      (a, b) => a.lang.localeCompare(b.lang) || (a.name ?? '').localeCompare(b.name ?? ''),
+    );
   return [modern, ...rest];
 }

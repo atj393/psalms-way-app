@@ -145,7 +145,7 @@
   "challengeStart": "رىقابەتنى باشلاڭ",
   "challengeContinue": "داۋاملاشتۇرۇش",
   "challengeCompleted": "تاماملاندى!",
-  "challengeProgress": "{{تامام}} / {{جەمئىي}} باب",
+  "challengeProgress": "{{done}} / {{total}} باب",
   "achievementUnlocked": "مۇۋەپپەقىيەت ئېچىلدى!",
   "challengeFinished": "رىقابەت تاماملاندى!",
   "awesome": "ئاجايىپ!",

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {DeviceEventEmitter, ScrollView, StyleSheet} from 'react-native';
+import {AppState, DeviceEventEmitter, ScrollView, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -14,7 +14,7 @@ import {NOTIF_PRESS_EVENT, type NotifPressPayload} from '../notificationEvents';
 import {checkAndUpdateStreak} from '../services/streakService';
 import {addHistory} from '../services/historyService';
 import {toggleFavorite, isFavorite} from '../services/favoritesService';
-import {scheduleDailyNotification} from '../services/notificationService';
+import {syncDailyNotifications} from '../services/notificationService';
 import {useAppSettings} from '../context/AppSettingsContext';
 import {checkAndAwardBadges} from '../services/badgesService';
 import AchievementCard, {type AchievementAction} from '../components/AchievementCard';
@@ -46,7 +46,6 @@ export default function HomeScreen() {
   );
   const [chapter, setChapter] = useState(initialChapter);
   const [highlightVerse, setHighlightVerse] = useState(initialVerse);
-  const [streak, setStreak] = useState(0);
   const [isFav, setIsFav] = useState(false);
   const [moreSheetVisible, setMoreSheetVisible] = useState(false);
   const [sourcePrayerId, setSourcePrayerId] = useState<string | null>(null);
@@ -70,10 +69,9 @@ export default function HomeScreen() {
     setAchievement(next ?? null);
   }, []);
 
-  // Update streak, reschedule notification with a fresh verse
+  // Update the reading streak and award any badges it unlocks.
   useEffect(() => {
     checkAndUpdateStreak().then(newStreak => {
-      setStreak(newStreak);
       checkAndAwardBadges(newStreak).then(newBadges => {
         if (newBadges.length > 0) {
           const items: Achievement[] = newBadges.map(b => ({
@@ -90,15 +88,43 @@ export default function HomeScreen() {
         }
       }).catch(() => {});
     }).catch(() => {});
-    if (notificationEnabled) {
-      scheduleDailyNotification(
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  /**
+   * Keeps the rolling window of daily reminders topped up.
+   *
+   * Reminders are now a queue of one-shot triggers (one per day, each with its
+   * own verse) rather than a single repeating trigger, so the queue has to be
+   * refilled as days are consumed. This runs on mount, whenever the reminder
+   * settings change, and whenever the app returns to the foreground — the last
+   * one matters because a user who leaves the app closed for a fortnight would
+   * otherwise exhaust the window.
+   *
+   * Settings arrive asynchronously from AsyncStorage, so this deliberately
+   * depends on the setting values instead of running once on mount: on the very
+   * first render they still hold their defaults.
+   */
+  useEffect(() => {
+    if (!notificationEnabled) return;
+
+    const sync = () => {
+      syncDailyNotifications(
         notificationHour,
         notificationMinute,
         bibleVersion,
-      ).catch(() => {});
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      ).catch(err => {
+        console.warn('[Home] Failed to sync daily reminders:', err?.message ?? err);
+      });
+    };
+
+    sync();
+
+    const sub = AppState.addEventListener('change', state => {
+      if (state === 'active') sync();
+    });
+    return () => sub.remove();
+  }, [notificationEnabled, notificationHour, notificationMinute, bibleVersion]);
 
   // Sync favorite state when chapter changes
   useEffect(() => {
