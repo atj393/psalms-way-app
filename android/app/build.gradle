@@ -72,6 +72,27 @@ def enableProguardInReleaseBuilds = false
  */
 def jscFlavor = 'io.github.react-native-community:jsc-android:2026004.+'
 
+/**
+ * Upload signing credentials, resolved once.
+ *
+ * Read from ~/.gradle/gradle.properties or the environment — never from a file
+ * inside this repository. All four must be present; a partial set is treated as
+ * absent, because a half-configured signingConfig fails deep inside the build
+ * rather than at configuration time.
+ */
+ext.uploadStoreFile = project.findProperty('MYAPP_UPLOAD_STORE_FILE') ?: System.getenv('MYAPP_UPLOAD_STORE_FILE')
+ext.uploadStorePassword = project.findProperty('MYAPP_UPLOAD_STORE_PASSWORD') ?: System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
+ext.uploadKeyAlias = project.findProperty('MYAPP_UPLOAD_KEY_ALIAS') ?: System.getenv('MYAPP_UPLOAD_KEY_ALIAS')
+ext.uploadKeyPassword = project.findProperty('MYAPP_UPLOAD_KEY_PASSWORD') ?: System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
+ext.hasUploadCredentials = (ext.uploadStoreFile && ext.uploadStorePassword
+        && ext.uploadKeyAlias && ext.uploadKeyPassword) as boolean
+
+if (!ext.hasUploadCredentials) {
+    logger.warn("[psalms-way] No upload signing credentials found — release artifacts will be UNSIGNED "
+            + "and Play will reject them. Set MYAPP_UPLOAD_STORE_FILE, MYAPP_UPLOAD_STORE_PASSWORD, "
+            + "MYAPP_UPLOAD_KEY_ALIAS and MYAPP_UPLOAD_KEY_PASSWORD. See docs/RELEASE.md.")
+}
+
 android {
     ndkVersion rootProject.ext.ndkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
@@ -95,15 +116,11 @@ android {
         release {
             // Credentials come from ~/.gradle/gradle.properties or the environment.
             // Never from a file inside this repo — see android/gradle.properties.
-            def storeFileName = project.findProperty('MYAPP_UPLOAD_STORE_FILE') ?: System.getenv('MYAPP_UPLOAD_STORE_FILE')
-            def storePass = project.findProperty('MYAPP_UPLOAD_STORE_PASSWORD') ?: System.getenv('MYAPP_UPLOAD_STORE_PASSWORD')
-            def keyAliasName = project.findProperty('MYAPP_UPLOAD_KEY_ALIAS') ?: System.getenv('MYAPP_UPLOAD_KEY_ALIAS')
-            def keyPass = project.findProperty('MYAPP_UPLOAD_KEY_PASSWORD') ?: System.getenv('MYAPP_UPLOAD_KEY_PASSWORD')
-            if (storeFileName && storePass && keyAliasName && keyPass) {
-                storeFile file(storeFileName)
-                storePassword storePass
-                keyAlias keyAliasName
-                keyPassword keyPass
+            if (project.ext.hasUploadCredentials) {
+                storeFile file(project.ext.uploadStoreFile)
+                storePassword project.ext.uploadStorePassword
+                keyAlias project.ext.uploadKeyAlias
+                keyPassword project.ext.uploadKeyPassword
             }
         }
     }
@@ -112,7 +129,20 @@ android {
             signingConfig signingConfigs.debug
         }
         release {
-            signingConfig signingConfigs.release
+            // Only attach the signing config when it is actually populated.
+            //
+            // Assigning an unpopulated one does not produce an unsigned
+            // artifact — bundleRelease fails in :app:signReleaseBundle with a
+            // bare NullPointerException, and only after the entire native build
+            // has run. That cost ~22 minutes to discover, with an error message
+            // that says nothing about signing credentials.
+            //
+            // Leaving it unset yields an unsigned bundle plus the warning
+            // printed above, which can then be signed separately with jarsigner
+            // once an upload key exists.
+            if (project.ext.hasUploadCredentials) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled enableProguardInReleaseBuilds
             proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
         }
