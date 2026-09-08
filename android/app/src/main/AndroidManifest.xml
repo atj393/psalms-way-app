@@ -8,17 +8,22 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
     <!--
-      SCHEDULE_EXACT_ALARM was declared but never used: reminders are scheduled
-      with AlarmType.SET_AND_ALLOW_WHILE_IDLE, which escapes Doze without
-      needing a restricted permission. Android 13+ gates SCHEDULE_EXACT_ALARM
-      behind a user grant and Google Play requires a policy justification for
-      it, so declaring it unused was a liability at review time with no
-      behavioural benefit.
+      SCHEDULE_EXACT_ALARM is deliberately NOT declared here. Reminders use
+      AlarmType.SET_AND_ALLOW_WHILE_IDLE, which escapes Doze without needing a
+      restricted permission, so this app does not rely on exact alarms.
 
-      RECEIVE_BOOT_COMPLETED is not declared here on purpose — Notifee's
-      RebootBroadcastReceiver and WorkManager's RescheduleReceiver both merge
-      it in, along with the receivers that restore scheduled notifications
-      after a reboot, a time change or a timezone change.
+      Note it still reaches the built APK: app.notifee:core declares it in its
+      own manifest and the merger pulls it in (confirmed in
+      build/outputs/logs/manifest-merger-debug-report.txt). Suppressing it
+      would need tools:node="remove", which has not been done because Notifee
+      may fall back to exact alarms internally and that cannot be verified
+      without on-device testing. Google Play will therefore still ask for a
+      justification for this permission.
+
+      RECEIVE_BOOT_COMPLETED is likewise not declared here on purpose —
+      Notifee's RebootBroadcastReceiver and WorkManager's RescheduleReceiver
+      merge it in along with the receivers that restore scheduled
+      notifications after a reboot, a time change or a timezone change.
     -->
 
     <application
