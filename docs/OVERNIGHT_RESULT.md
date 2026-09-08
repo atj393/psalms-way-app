@@ -200,6 +200,42 @@ Being explicit, because the brief asked for real results only.
 
 ---
 
+## What the brief asked for that I did not do
+
+The brief had 47 sections and set a priority order for when time ran short. I
+worked that order and got through priorities 1–5 thoroughly. Priorities 6–9 are
+largely untouched, and pretending otherwise would waste your morning.
+
+**Not done:**
+
+- **Systematic visual/UX audit (§15–20, §38).** No pass over spacing, alignment,
+  typography, touch targets, elevation, dividers, empty states or dark-mode
+  consistency across the 16 screens. I fixed exactly one empty state
+  (`ChapterScreen`) because a data bug made it a blank screen, not because I had
+  audited it. The Library, Search and Compare screens were read but not
+  critiqued.
+- **Design-system consistency (§16).** Not attempted. The 113 inline-style
+  warnings are the visible symptom.
+- **Accessibility audit (§30).** New UI has labels and `accessibilityState`;
+  existing screens were not reviewed for contrast, touch-target size, or
+  screen-reader semantics.
+- **Performance profiling (§29).** Nothing measured. The brief said to profile
+  before optimising, so I did neither. Search over 26 MB on every keystroke is
+  worth a look.
+- **Logging audit (§26).** Not done systematically. I did not verify whether any
+  release path logs personal reading data.
+- **Dependency review (§28).** Versions and maintenance status were not audited
+  beyond what the Drive work required. No unused dependencies were removed.
+- **Manual smoke test (§37).** Impossible without a device — see the section
+  above.
+
+The reason is simple: correctness work generated more real findings than
+expected, and the brief said not to sacrifice correctness and tests for
+cosmetics. A UX pass on top would also have made this PR too large to review,
+which defeats the point of handing you a reviewable branch.
+
+---
+
 ## Remaining issues
 
 ### Needs you — P0

@@ -330,6 +330,22 @@ Lint ran with `continue-on-error`, there was no typecheck, no Android build, and
 Node 20 despite `engines` requiring >= 22.11.0. All four corrected; lint gates
 now that the six errors are gone.
 
+### D-04 · `android/gradlew` was not executable — **Fixed**
+
+**Evidence** Committed with mode `100644`. The first CI run of the new Android
+job failed immediately with `./gradlew: Permission denied` (exit 126).
+
+**Cause** Windows does not track the execute bit, so the file runs fine locally
+regardless of its recorded mode. Nothing in the repository had ever run
+`gradlew` on Linux, so it went unnoticed.
+
+**Fix** `git update-index --chmod=+x android/gradlew`. Setting the mode is
+better than working around it with `sh gradlew` in the workflow, because anyone
+cloning on Linux or macOS hits the same thing.
+
+Worth noting as the first thing the new CI job caught — a real pre-existing
+issue that only became visible once something actually ran the build on Linux.
+
 ### D-02 · Stale project documentation — **Fixed**
 
 `CLAUDE.md` described a 5-screen app with no i18n, notifications, bookmarks,
