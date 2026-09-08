@@ -154,13 +154,28 @@ Android debug APK.
 
 Run on this branch at the final commit:
 
+Locally:
+
 ```text
 npm run lint       PASS   0 errors, 113 warnings
 npm run typecheck  PASS
 npm test           PASS   416 tests, 10 suites
-./gradlew assembleDebug   PASS   3m 10s (arm64-v8a)
+./gradlew assembleDebug   PASS   3m 10s  (arm64-v8a)
 ./gradlew assembleDebug   PASS   35m 08s (all 4 ABIs, earlier in the session)
 ```
+
+And on CI, green on both jobs from a clean `npm ci`
+([run 34176442047](https://github.com/atj393/psalms-way-app/actions/runs/34176442047)):
+
+```text
+Test                 PASS   41s     lint + typecheck + jest
+Android debug build  PASS   7m 14s  assembleDebug, arm64-v8a
+```
+
+That run is the one that matters for the CI changes: lint now gates rather
+than reporting, typecheck is new, and the Android job did not exist before.
+Its first attempt failed immediately on a non-executable `gradlew` (D-04),
+which is exactly the kind of thing the job was added to catch.
 
 Baseline for comparison: 1 test, 6 lint errors, no typecheck script.
 
