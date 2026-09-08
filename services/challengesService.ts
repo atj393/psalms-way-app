@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getRandomVerse} from './psalmsService';
+import {todayKey} from './dateUtils';
 
 export type ChallengeId =
   | 'jesus_testing'
@@ -125,7 +126,10 @@ export async function startChallenge(
   notifMinute: number,
   version: string = 'modern',
 ): Promise<ChallengeProgress> {
-  const def = CHALLENGE_DEFS.find(d => d.id === id)!;
+  const def = CHALLENGE_DEFS.find(d => d.id === id);
+  if (!def) {
+    throw new Error(`Unknown challenge: ${id}`);
+  }
 
   // Generate one random verse per chapter
   const dayAssignments: ChallengeDayAssignment[] = def.chapters.map(chapter => {
@@ -137,7 +141,7 @@ export async function startChallenge(
   });
 
   const progress: ChallengeProgress = {
-    startDate: new Date().toISOString().split('T')[0],
+    startDate: todayStr(),
     notifHour,
     notifMinute,
     dayAssignments,
@@ -151,8 +155,15 @@ export async function startChallenge(
   return progress;
 }
 
-function todayStr(): string {
-  return new Date().toISOString().split('T')[0];
+/**
+ * The user's LOCAL calendar day.
+ *
+ * This used to be `toISOString().split('T')[0]`, i.e. the UTC day. That made
+ * the once-per-day gate roll over at midnight UTC — mid-afternoon for readers
+ * in UTC+13, and still "yesterday" until late morning for readers in UTC-8.
+ */
+function todayStr(now: Date = new Date()): string {
+  return todayKey(now);
 }
 
 /**
@@ -190,6 +201,17 @@ export async function markDayComplete(
   const all = await load();
   const progress = all[id];
   if (!progress) throw new Error('Challenge not started');
+
+  // Guard the index: an out-of-range value would be pushed into completedDays
+  // and permanently inflate the completed count, so the challenge could report
+  // itself finished with real days still unread.
+  if (
+    !Number.isInteger(dayIndex) ||
+    dayIndex < 0 ||
+    dayIndex >= progress.dayAssignments.length
+  ) {
+    throw new Error(`Day index ${dayIndex} is out of range for challenge ${id}`);
+  }
 
   // One per day enforcement
   const today = todayStr();

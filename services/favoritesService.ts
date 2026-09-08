@@ -1,18 +1,17 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {asFilteredArray, isChapter, readJson, withKeyLock, writeJson} from './storage';
 
 const KEY = 'favorites';
 
-async function load(): Promise<number[]> {
-  try {
-    const raw = await AsyncStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as number[]) : [];
-  } catch {
-    return [];
-  }
+function parseChapter(value: unknown): number | null {
+  return isChapter(value) ? value : null;
 }
 
-async function save(items: number[]): Promise<void> {
-  await AsyncStorage.setItem(KEY, JSON.stringify(items));
+function load(): Promise<number[]> {
+  return readJson(KEY, value => asFilteredArray(value, parseChapter), []);
+}
+
+function save(items: number[]): Promise<void> {
+  return writeJson(KEY, items);
 }
 
 export async function getFavorites(): Promise<number[]> {
@@ -25,24 +24,30 @@ export async function isFavorite(chapter: number): Promise<boolean> {
 }
 
 export async function addFavorite(chapter: number): Promise<void> {
-  const items = await load();
-  if (!items.includes(chapter)) {
-    await save([chapter, ...items]);
-  }
+  return withKeyLock(KEY, async () => {
+    const items = await load();
+    if (!items.includes(chapter)) {
+      await save([chapter, ...items]);
+    }
+  });
 }
 
 export async function removeFavorite(chapter: number): Promise<void> {
-  const items = await load();
-  await save(items.filter(c => c !== chapter));
+  return withKeyLock(KEY, async () => {
+    const items = await load();
+    await save(items.filter(c => c !== chapter));
+  });
 }
 
+/** Toggles a favourite under a single lock — see toggleBookmark for why. */
 export async function toggleFavorite(chapter: number): Promise<boolean> {
-  const fav = await isFavorite(chapter);
-  if (fav) {
-    await removeFavorite(chapter);
-    return false;
-  } else {
-    await addFavorite(chapter);
+  return withKeyLock(KEY, async () => {
+    const items = await load();
+    if (items.includes(chapter)) {
+      await save(items.filter(c => c !== chapter));
+      return false;
+    }
+    await save([chapter, ...items]);
     return true;
-  }
+  });
 }
