@@ -35,7 +35,7 @@ passwords are still in git history and pushed to GitHub. Rotate the key.
 |---|---|
 | Base commit | `9529a85` on `main` |
 | Branch | `codex/overnight-product-hardening` |
-| Commits | 8 |
+| Commits | 10 |
 | Merged to main | **No** — draft PR only |
 | Release performed | **No** — versionCode and versionName untouched |
 
