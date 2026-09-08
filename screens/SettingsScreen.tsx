@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
     Alert,
     FlatList,
@@ -30,6 +30,17 @@ import {
     syncDailyNotifications,
     cancelDailyNotifications,
 } from '../services/notificationService';
+import {
+    applyRestore,
+    backupNow,
+    connect,
+    disconnect,
+    fetchBackupForReview,
+    getStatus,
+    type BackupStatus,
+    type CloudErrorCode,
+} from '../services/backup/cloudBackupService';
+import { version as APP_VERSION } from '../package.json';
 import { M3Card, M3Divider, M3IconButton, M3Pressable, M3SegmentedButton, M3TextButton } from '../components/M3';
 // M3SegmentedButton still used for TEXT SIZE and THEME sections
 
@@ -146,6 +157,12 @@ export default function SettingsScreen() {
     const [showTimePicker, setShowTimePicker] = useState(false);
     const [langModalVisible, setLangModalVisible] = useState(false);
     const [bibleModalVisible, setBibleModalVisible] = useState(false);
+    const [backupStatus, setBackupStatus] = useState<BackupStatus>({
+        configured: false,
+        account: null,
+        lastBackup: null,
+    });
+    const [backupBusy, setBackupBusy] = useState(false);
 
     const handleSetLanguage = (lang: AppLanguage | 'auto') => {
         setLanguage(lang);
@@ -201,6 +218,122 @@ export default function SettingsScreen() {
                 });
             }
         }
+    };
+
+    // ─── Backup & Restore ─────────────────────────────────────────────────────
+
+    const refreshBackupStatus = useCallback(() => {
+        getStatus()
+            .then(setBackupStatus)
+            .catch(err => console.warn('[Settings] Could not read backup status:', err));
+    }, []);
+
+    useEffect(refreshBackupStatus, [refreshBackupStatus]);
+
+    /** Turns a CloudErrorCode into an explanation the user can act on. */
+    const showCloudError = (code: CloudErrorCode) => {
+        const messageKey =
+            {
+                'not-configured': 'backupErrNotConfigured',
+                'not-signed-in': 'backupErrNotSignedIn',
+                'auth-expired': 'backupErrAuthExpired',
+                network: 'backupErrNetwork',
+                quota: 'backupErrQuota',
+                server: 'backupErrServer',
+                'no-backup': 'backupErrNoBackup',
+                'corrupt-backup': 'backupErrCorrupt',
+                'incompatible-backup': 'backupErrIncompatible',
+                'restore-failed': 'backupErrRestoreFailed',
+                unknown: 'backupErrUnknown',
+            }[code] ?? 'backupErrUnknown';
+        Alert.alert(t('backupTitle'), t(messageKey));
+    };
+
+    const handleConnectGoogle = async () => {
+        setBackupBusy(true);
+        const result = await connect();
+        setBackupBusy(false);
+        if (!result.ok) {
+            // A cancelled account picker is a choice, not an error worth an alert.
+            if (result.code !== 'not-signed-in') showCloudError(result.code);
+            return;
+        }
+        refreshBackupStatus();
+    };
+
+    const handleBackupNow = async () => {
+        setBackupBusy(true);
+        const result = await backupNow(APP_VERSION);
+        setBackupBusy(false);
+        if (!result.ok) {
+            showCloudError(result.code);
+            return;
+        }
+        refreshBackupStatus();
+        Alert.alert(t('backupTitle'), t('backupDone'));
+    };
+
+    /**
+     * Restore is two steps on purpose: fetch and validate, show the user what
+     * the backup contains and when it was made, and only replace local data
+     * once they confirm. Restore overwrites everything personal on this device,
+     * so it must never be a single tap.
+     */
+    const handleRestore = async () => {
+        setBackupBusy(true);
+        const review = await fetchBackupForReview();
+        setBackupBusy(false);
+        if (!review.ok) {
+            showCloudError(review.code);
+            return;
+        }
+
+        const {backup, summary} = review.value;
+        Alert.alert(
+            t('backupRestoreConfirmTitle'),
+            t('backupRestoreConfirmBody', {
+                date: new Date(summary.createdAt).toLocaleString(),
+                bookmarks: summary.bookmarks,
+                notes: summary.notes,
+                highlights: summary.highlights,
+            }),
+            [
+                {text: t('cancel'), style: 'cancel'},
+                {
+                    text: t('backupRestore'),
+                    style: 'destructive',
+                    onPress: async () => {
+                        setBackupBusy(true);
+                        const result = await applyRestore(backup);
+                        setBackupBusy(false);
+                        if (!result.ok) {
+                            showCloudError(result.code);
+                            return;
+                        }
+                        // Restored settings include the reminder preferences, so
+                        // the schedule is rebuilt from them on this device rather
+                        // than carrying over the other device's trigger ids.
+                        Alert.alert(t('backupTitle'), t('backupRestoreDone'));
+                        refreshBackupStatus();
+                    },
+                },
+            ],
+        );
+    };
+
+    const handleDisconnect = async () => {
+        Alert.alert(t('backupDisconnect'), t('backupDisconnectBody'), [
+            {text: t('cancel'), style: 'cancel'},
+            {
+                text: t('backupDisconnect'),
+                style: 'destructive',
+                onPress: async () => {
+                    const result = await disconnect();
+                    if (!result.ok) showCloudError(result.code);
+                    refreshBackupStatus();
+                },
+            },
+        ]);
     };
 
     const pickerDate = new Date();
@@ -382,6 +515,115 @@ export default function SettingsScreen() {
                         onChange={handleTimeChange}
                     />
                 )}
+
+                {/* ─── BACKUP & RESTORE ───────────────────────────────────────── */}
+                <SectionLabel label={t('backupSection')} />
+                <M3Card variant="filled" style={styles.sectionCard}>
+                    <View style={styles.settingsRow}>
+                        <View style={styles.settingsRowLeft}>
+                            <Text style={[type.titleSmall, { color: colors.onSurface }]}>
+                                {t('backupTitle')}
+                            </Text>
+                            <Text style={[type.bodySmall, { color: colors.onSurfaceVariant }]}>
+                                {t('backupOptionalDesc')}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <M3Divider style={styles.rowDivider} />
+
+                    {/*
+                      Three honest states. The build ships without a Google
+                      sign-in provider registered, so the default is "not
+                      available" with the reason — deliberately not a Connect
+                      button that could only fail.
+                    */}
+                    {!backupStatus.configured ? (
+                        <View style={styles.settingsRow}>
+                            <View style={styles.settingsRowLeft}>
+                                <Text style={[type.bodyMedium, { color: colors.onSurfaceVariant }]}>
+                                    {t('backupUnavailable')}
+                                </Text>
+                            </View>
+                        </View>
+                    ) : !backupStatus.account ? (
+                        <TouchableOpacity
+                            style={styles.settingsRow}
+                            onPress={handleConnectGoogle}
+                            disabled={backupBusy}
+                            accessibilityRole="button"
+                            accessibilityState={{disabled: backupBusy}}
+                            accessibilityLabel={t('backupConnect')}>
+                            <View style={styles.settingsRowLeft}>
+                                <Text style={[type.titleSmall, { color: colors.primary }]}>
+                                    {t('backupConnect')}
+                                </Text>
+                            </View>
+                            <Icons name="chevron-right" size={20} color={colors.onSurfaceVariant} />
+                        </TouchableOpacity>
+                    ) : (
+                        <>
+                            <View style={styles.settingsRow}>
+                                <View style={styles.settingsRowLeft}>
+                                    <Text style={[type.bodySmall, { color: colors.onSurfaceVariant }]}>
+                                        {t('backupAccount')}
+                                    </Text>
+                                    <Text style={[type.bodyMedium, { color: colors.onSurface }]}>
+                                        {backupStatus.account.email}
+                                    </Text>
+                                    <Text style={[type.bodySmall, { color: colors.onSurfaceVariant }]}>
+                                        {backupStatus.lastBackup?.modifiedTime
+                                            ? t('backupLastAt', {
+                                                  time: new Date(
+                                                      backupStatus.lastBackup.modifiedTime,
+                                                  ).toLocaleString(),
+                                              })
+                                            : t('backupNever')}
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <M3Divider style={styles.rowDivider} />
+                            <TouchableOpacity
+                                style={styles.settingsRow}
+                                onPress={handleBackupNow}
+                                disabled={backupBusy}
+                                accessibilityRole="button"
+                                accessibilityState={{disabled: backupBusy}}
+                                accessibilityLabel={t('backupNow')}>
+                                <Text style={[type.titleSmall, { color: colors.primary }]}>
+                                    {backupBusy ? t('backupWorking') : t('backupNow')}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <M3Divider style={styles.rowDivider} />
+                            <TouchableOpacity
+                                style={styles.settingsRow}
+                                onPress={handleRestore}
+                                disabled={backupBusy}
+                                accessibilityRole="button"
+                                accessibilityState={{disabled: backupBusy}}
+                                accessibilityLabel={t('backupRestore')}>
+                                <Text style={[type.titleSmall, { color: colors.primary }]}>
+                                    {t('backupRestore')}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <M3Divider style={styles.rowDivider} />
+                            <TouchableOpacity
+                                style={styles.settingsRow}
+                                onPress={handleDisconnect}
+                                disabled={backupBusy}
+                                accessibilityRole="button"
+                                accessibilityState={{disabled: backupBusy}}
+                                accessibilityLabel={t('backupDisconnect')}>
+                                <Text style={[type.titleSmall, { color: colors.error }]}>
+                                    {t('backupDisconnect')}
+                                </Text>
+                            </TouchableOpacity>
+                        </>
+                    )}
+                </M3Card>
             </ScrollView>
 
             {/* ─── Bible version picker modal ────────────────────────────────── */}
