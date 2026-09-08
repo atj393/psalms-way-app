@@ -91,6 +91,68 @@ verification step below rather than discovering it at upload time.
 
 ---
 
+## Windows: the release build fails from this checkout path
+
+`bundleRelease` fails here with:
+
+```
+ninja: error: Stat(...RNCSafeAreaViewShadowNode.cpp.o): Filename longer than 260 characters
+```
+
+This is not a code problem and not a signing problem. The C++ object paths
+embed the project path **twice** — once as the `.cxx` build root, once as the
+mangled source path inside `CMakeFiles/<target>.dir/` — so the full path runs to
+roughly 370 characters from:
+
+```
+C:\Alexis\Test\my projects\github-repos\psalms-way-app
+```
+
+`assembleDebug` succeeds from the same directory purely because its intermediate
+folder is `Debug` (5 characters) where release uses `RelWithDebInfo` (14). Those
+nine characters are the whole difference.
+
+`LongPathsEnabled` is already `1` in the registry on this machine, which is not
+enough: the ninja bundled with the Android SDK's CMake (1.10.2) is not
+long-path aware and enforces MAX_PATH itself.
+
+### What works
+
+Build from a short directory. Copying rather than moving keeps the original
+checkout untouched:
+
+```powershell
+robocopy "C:\Alexis\Test\my projects\github-repos\psalms-way-app" C:\psw /E /MT:16 `
+  /XD "C:\Alexis\Test\my projects\github-repos\psalms-way-app\.git" `
+      "C:\Alexis\Test\my projects\github-repos\psalms-way-appndroiduild" `
+      "C:\Alexis\Test\my projects\github-repos\psalms-way-appndroidppuild" `
+      "C:\Alexis\Test\my projects\github-repos\psalms-way-appndroidpp\.cxx"
+
+cd C:\pswndroid
+.\gradlew bundleRelease
+```
+
+Exclude those four by **full path**, not by name — `/XD build` matches any
+directory called `build`, which silently strips the 70 `node_modules/*/build`
+folders that packages ship real code in.
+
+### What does not work
+
+- **`subst`** to fake a short drive. The native build gets past the path limit,
+  but Metro then fails with `Failed to get the SHA-1 for: ...`, because it
+  resolves files through their real path while the project root is the virtual
+  drive, so its haste map never matches.
+- **Relying on `LongPathsEnabled`**, for the ninja reason above.
+
+### The durable fix
+
+Move the checkout somewhere short — `C:\dev\psalms-way-app` — and keep it
+out of paths containing spaces. The old `CLAUDE.md` referenced
+`C:\Alexis\Test\psalm-way-new`, which was short enough; the release build
+most likely broke when the repository moved under `github-repos/`.
+
+---
+
 ## Building
 
 ```bash
