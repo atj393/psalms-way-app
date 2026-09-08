@@ -27,8 +27,8 @@ import Icons from '../components/Icons';
 import i18n, { getDeviceLanguage } from '../i18n';
 import {
     requestNotificationPermission,
-    scheduleDailyNotification,
-    cancelDailyNotification,
+    syncDailyNotifications,
+    cancelDailyNotifications,
 } from '../services/notificationService';
 import { M3Card, M3Divider, M3IconButton, M3Pressable, M3SegmentedButton, M3TextButton } from '../components/M3';
 // M3SegmentedButton still used for TEXT SIZE and THEME sections
@@ -154,6 +154,8 @@ export default function SettingsScreen() {
         i18n.changeLanguage(resolved).catch(() => { });
     };
 
+    // Permission is requested here — at the moment the user asks for reminders —
+    // rather than on app startup, so the prompt arrives with obvious context.
     const handleNotificationToggle = async (value: boolean) => {
         if (value) {
             const granted = await requestNotificationPermission();
@@ -164,10 +166,20 @@ export default function SettingsScreen() {
                 );
                 return;
             }
-            await scheduleDailyNotification(notificationHour, notificationMinute, bibleVersion);
+            try {
+                await syncDailyNotifications(notificationHour, notificationMinute, bibleVersion);
+            } catch (err) {
+                // Leave the toggle off: pretending reminders are on when nothing
+                // was queued is worse than telling the user it failed.
+                Alert.alert(t('notifScheduleFailedTitle'), t('notifScheduleFailedMessage'));
+                console.warn('[Settings] Failed to schedule reminders:', err);
+                return;
+            }
             setNotificationEnabled(true);
         } else {
-            await cancelDailyNotification();
+            await cancelDailyNotifications().catch(err =>
+                console.warn('[Settings] Failed to cancel reminders:', err),
+            );
             setNotificationEnabled(false);
         }
     };
@@ -181,7 +193,12 @@ export default function SettingsScreen() {
             const minute = date.getMinutes();
             setNotificationTime(hour, minute);
             if (notificationEnabled) {
-                await scheduleDailyNotification(hour, minute, bibleVersion).catch(() => { });
+                // Re-syncing rebuilds the whole window at the new time; stale
+                // triggers from the previous time are cancelled inside.
+                await syncDailyNotifications(hour, minute, bibleVersion).catch(err => {
+                    Alert.alert(t('notifScheduleFailedTitle'), t('notifScheduleFailedMessage'));
+                    console.warn('[Settings] Failed to reschedule reminders:', err);
+                });
             }
         }
     };

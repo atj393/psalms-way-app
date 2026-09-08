@@ -1,9 +1,25 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <!--
+      INTERNET is required only for the optional Google Drive backup feature.
+      Reading psalms is entirely offline and never touches the network.
+    -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.VIBRATE"/>
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+    <!--
+      SCHEDULE_EXACT_ALARM was declared but never used: reminders are scheduled
+      with AlarmType.SET_AND_ALLOW_WHILE_IDLE, which escapes Doze without
+      needing a restricted permission. Android 13+ gates SCHEDULE_EXACT_ALARM
+      behind a user grant and Google Play requires a policy justification for
+      it, so declaring it unused was a liability at review time with no
+      behavioural benefit.
+
+      RECEIVE_BOOT_COMPLETED is not declared here on purpose — Notifee's
+      RebootBroadcastReceiver and WorkManager's RescheduleReceiver both merge
+      it in, along with the receivers that restore scheduled notifications
+      after a reboot, a time change or a timezone change.
+    -->
 
     <application
       android:name=".MainApplication"

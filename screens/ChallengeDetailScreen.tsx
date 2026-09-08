@@ -25,12 +25,11 @@ import {
   markDayComplete,
   startChallenge,
   resetChallenge,
-  type ChallengeId,
   type ChallengeProgress,
 } from '../services/challengesService';
 import {
-  scheduleChallengeNotification,
-  cancelChallengeNotification,
+  syncChallengeNotifications,
+  cancelChallengeNotifications,
 } from '../services/notificationService';
 import {getVerse} from '../services/psalmsService';
 import {useAppSettings} from '../context/AppSettingsContext';
@@ -182,20 +181,19 @@ export default function ChallengeDetailScreen() {
   const handleStartChallenge = useCallback(async () => {
     const newProgress = await startChallenge(challengeId, pickerHour, pickerMinute, bibleVersion);
     reload();
-    const firstAssignment = newProgress.dayAssignments[0];
-    if (firstAssignment) {
-      const verseResult = getVerse(firstAssignment.chapter, firstAssignment.verseNumber, bibleVersion);
-      if (verseResult) {
-        await scheduleChallengeNotification(
-          challengeId, t(def.i18nKey), pickerHour, pickerMinute, verseResult.verse,
-        ).catch(() => {});
-      }
-    }
+    // Queue the upcoming days. Each day carries its own assigned verse, so the
+    // reminder text advances with the challenge instead of repeating day one.
+    await syncChallengeNotifications(
+      challengeId,
+      t(def.i18nKey),
+      newProgress,
+      bibleVersion,
+    ).catch(err => console.warn('[Challenge] Failed to schedule reminders:', err));
   }, [challengeId, pickerHour, pickerMinute, bibleVersion, def.i18nKey, t, reload]);
 
   // ── Restart ───────────────────────────────────────────────────────────────────
   const handleRestart = useCallback(async () => {
-    await cancelChallengeNotification(challengeId).catch(() => {});
+    await cancelChallengeNotifications(challengeId).catch(() => {});
     await resetChallenge(challengeId).catch(() => {});
     reload();
   }, [challengeId, reload]);
@@ -209,9 +207,22 @@ export default function ChallengeDetailScreen() {
     setDayCardData({day: result.completedDayIndex + 1, daysLeft: result.daysLeft, allDone: result.challengeJustCompleted});
     setDayCardVisible(true);
     if (result.challengeJustCompleted) {
-      await cancelChallengeNotification(challengeId).catch(() => {});
+      await cancelChallengeNotifications(challengeId).catch(() => {});
+    } else {
+      // Completing a day shifts which assignment each upcoming reminder should
+      // carry, so rebuild the queue rather than leaving it pointing at days the
+      // user has already read.
+      const updated = await getProgress(challengeId).catch(() => undefined);
+      if (updated) {
+        await syncChallengeNotifications(
+          challengeId,
+          t(def.i18nKey),
+          updated,
+          bibleVersion,
+        ).catch(err => console.warn('[Challenge] Failed to refresh reminders:', err));
+      }
     }
-  }, [todayDayIndex, progress, challengeId, reload]);
+  }, [todayDayIndex, progress, challengeId, reload, t, def.i18nKey, bibleVersion]);
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
