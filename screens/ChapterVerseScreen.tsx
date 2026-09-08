@@ -28,7 +28,7 @@ export default function ChapterVerseScreen({
   onBackToPrayer,
 }: Props) {
   const {t} = useTranslation();
-  const {colors, type, fontSize} = useTheme();
+  const {colors, fontSize} = useTheme();
   const {bibleVersion} = useAppSettings();
 
   const [verse, setVerse] = useState<{verse: string; verseNumber: number} | null>(null);

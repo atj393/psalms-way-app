@@ -390,7 +390,9 @@ type ChipProps = {
   style?: StyleProp<ViewStyle>;
 };
 
-export function M3Chip({label, type: chipType = 'assist', selected = false, leading, onPress, style}: ChipProps) {
+// `type` is accepted for call-site expressiveness but all chip variants
+// currently render identically, so it is intentionally not destructured.
+export function M3Chip({label, selected = false, leading, onPress, style}: ChipProps) {
   const {colors, type} = useTheme();
 
   const bg = selected ? colors.secondaryContainer : 'transparent';
