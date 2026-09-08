@@ -145,7 +145,7 @@
   "challengeStart": "Începe provocarea",
   "challengeContinue": "Continua",
   "challengeCompleted": "Finalizat!",
-  "challengeProgress": "{{gata}} / {{total}} capitole",
+  "challengeProgress": "{{done}} / {{total}} capitole",
   "achievementUnlocked": "Realizare deblocată!",
   "challengeFinished": "Provocare finalizată!",
   "awesome": "Minunat!",

@@ -107,9 +107,6 @@
   "a11yThemeDark": "Dark theme",
   "a11yMore": "More options",
 
-  "themeAuto": "Auto",
-  "themeLight": "Light",
-  "themeDark": "Dark",
 
   "languageAutoDevice": "Auto (device)",
 
@@ -225,5 +222,8 @@
   "onboardReadyDesc": "Tap the ⌃ arrow in the bottom bar anytime to open Library, Stats, Badges, and Challenges.",
   "onboardNext": "Next",
   "onboardGetStarted": "Get Started",
-  "onboardSkip": "Skip"
+  "onboardSkip": "Skip",
+  "notifScheduleFailedTitle": "Could not set reminder",
+  "notifScheduleFailedMessage": "Your daily verse reminder could not be scheduled. Please try again.",
+  "psalmUnavailable": "This psalm is not available in the selected translation. Try another translation from Settings."
 }

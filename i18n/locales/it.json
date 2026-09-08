@@ -145,7 +145,7 @@
   "challengeStart": "Inizia la sfida",
   "challengeContinue": "Continuare",
   "challengeCompleted": "Completato!",
-  "challengeProgress": "{{fatto}} / {{totale}} capitoli",
+  "challengeProgress": "{{done}} / {{total}} capitoli",
   "achievementUnlocked": "Obiettivo sbloccato!",
   "challengeFinished": "Sfida completata!",
   "awesome": "Eccezionale!",

@@ -1,7 +1,13 @@
 {
   "extends": "@react-native/typescript-config",
   "compilerOptions": {
-    "types": ["jest"],
+    // "node" is needed by the locale- and translation-integrity tests, which
+    // read the data directories with fs/path. @types/node currently arrives
+    // transitively through jest rather than as a direct devDependency; adding
+    // it explicitly is worth doing, but this repo's committed lockfile is
+    // rewritten wholesale by npm 9, so that belongs in its own change.
+    // If the transitive package ever goes away, `tsc --noEmit` fails loudly.
+    "types": ["jest", "node"],
     "resolveJsonModule": true
   },
   "include": ["**/*.ts", "**/*.tsx"],

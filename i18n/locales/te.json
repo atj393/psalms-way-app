@@ -182,7 +182,7 @@
   "challengeSetTime": "మేము మీకు ఎప్పుడు గుర్తు చేయాలి?",
   "challengeTimeDesc": "రోజువారీ రిమైండర్ {{time}} వద్ద",
   "challengeDay": "{{day}} of {{total}}",
-  "challengeDayNumber": "రోజు {{రోజు}}",
+  "challengeDayNumber": "రోజు {{day}}",
   "challengeTodaysVerse": "నేటి పద్యం",
   "markAsRead": "చదివినట్లుగా గుర్తించండి",
   "challengeDayComplete": "{{day}}వ రోజు పూర్తయింది! 🎉",

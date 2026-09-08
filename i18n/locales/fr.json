@@ -182,7 +182,7 @@
   "challengeSetTime": "Quand devrions-nous vous le rappeler ?",
   "challengeTimeDesc": "Rappel quotidien à {{time}}",
   "challengeDay": "Jour {{day}} de {{total}}",
-  "challengeDayNumber": "Jour {{jour}}",
+  "challengeDayNumber": "Jour {{day}}",
   "challengeTodaysVerse": "Le verset du jour",
   "markAsRead": "Marquer comme lu",
   "challengeDayComplete": "Jour {{day}} terminé ! 🎉",

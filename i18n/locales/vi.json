@@ -182,7 +182,7 @@
   "challengeSetTime": "Chúng tôi nên nhắc nhở bạn khi nào?",
   "challengeTimeDesc": "Lời nhắc hàng ngày vào lúc {{time}}",
   "challengeDay": "Ngày {{day}} trong tổng số {{total}}",
-  "challengeDayNumber": "Ngày {{ngày}}",
+  "challengeDayNumber": "Ngày {{day}}",
   "challengeTodaysVerse": "Câu Kinh Thánh hôm nay",
   "markAsRead": "Đánh dấu là đã đọc",
   "challengeDayComplete": "Ngày {{day}} đã hoàn thành! 🎉",

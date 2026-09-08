@@ -225,6 +225,25 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
                     );
                 }}
                 ItemSeparatorComponent={() => <M3Divider style={styles.divider} />}
+                /*
+                 * Not every bundled translation is complete: the Lithuanian
+                 * Heritage text stops at Psalm 137 and the Tamil OITCE text at
+                 * 148. Those psalms previously rendered as a silent blank
+                 * screen with no way to tell a missing translation from a
+                 * loading failure.
+                 */
+                ListEmptyComponent={
+                    <View style={styles.emptyState}>
+                        <Text
+                            style={[
+                                type.bodyLarge,
+                                styles.emptyText,
+                                { color: colors.onSurfaceVariant },
+                            ]}>
+                            {t('psalmUnavailable')}
+                        </Text>
+                    </View>
+                }
             />
 
             {/* ─── Action sheet modal ──────────────────────────────────────────── */}
@@ -421,6 +440,12 @@ export default function ChapterScreen({ chapter, highlightVerse, onOpenNoteEdit 
 const styles = StyleSheet.create({
     list: { flex: 1 },
     content: { paddingBottom: spacing.xl },
+    emptyState: {
+        paddingHorizontal: spacing.xl,
+        paddingVertical: spacing.xl * 2,
+        alignItems: 'center',
+    },
+    emptyText: { textAlign: 'center' },
     verseRow: {
         flexDirection: 'row',
         alignItems: 'flex-start',

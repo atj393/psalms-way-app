@@ -145,7 +145,7 @@
   "challengeStart": "チャレンジ開始",
   "challengeContinue": "続く",
   "challengeCompleted": "完了しました！",
-  "challengeProgress": "{{完了}} / {{合計}}章",
+  "challengeProgress": "{{done}} / {{total}}章",
   "achievementUnlocked": "実績解除！",
   "challengeFinished": "チャレンジ完了！",
   "awesome": "素晴らしい！",

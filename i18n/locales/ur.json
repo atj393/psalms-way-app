@@ -182,7 +182,7 @@
   "challengeSetTime": "ہم آپ کو کب یاد دلائیں؟",
   "challengeTimeDesc": "روزانہ کی یاد دہانی {{time}} پر",
   "challengeDay": "{{total}} میں سے {{day}} دن",
-  "challengeDayNumber": "دن {{دن}}",
+  "challengeDayNumber": "دن {{day}}",
   "challengeTodaysVerse": "آج کی آیت",
   "markAsRead": "پڑھا ہوا نشان زد کریں۔",
   "challengeDayComplete": "دن {{day}} مکمل! 🎉",

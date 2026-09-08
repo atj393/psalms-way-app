@@ -145,7 +145,7 @@
   "challengeStart": "Meydan Okumaya Başla",
   "challengeContinue": "Devam etmek",
   "challengeCompleted": "Tamamlanmış!",
-  "challengeProgress": "{{tamamlandı}} / {{toplam}} bölüm",
+  "challengeProgress": "{{done}} / {{total}} bölüm",
   "achievementUnlocked": "Başarı kilidi açıldı!",
   "challengeFinished": "Görev Tamamlandı!",
   "awesome": "Mükemmel!",

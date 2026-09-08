@@ -182,7 +182,7 @@
   "challengeSetTime": "Kad mums vajadzētu jums atgādināt?",
   "challengeTimeDesc": "Dienas atgādinājums plkst. {{time}}",
   "challengeDay": "{{day}}. diena no {{total}}",
-  "challengeDayNumber": "Diena {{diena}}",
+  "challengeDayNumber": "Diena {{day}}",
   "challengeTodaysVerse": "Šodienas pants",
   "markAsRead": "Atzīmēt kā izlasītu",
   "challengeDayComplete": "{{day}}. diena pabeigta! 🎉",
